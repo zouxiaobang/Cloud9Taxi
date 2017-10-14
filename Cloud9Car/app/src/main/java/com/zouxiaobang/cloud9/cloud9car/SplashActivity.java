@@ -20,5 +20,5 @@ public class SplashActivity extends Activity {
             anim1.start();
         }
     }
-    
+
 }
