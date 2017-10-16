@@ -12,8 +12,10 @@ import okhttp3.Cache;
 import okhttp3.CacheControl;
 import okhttp3.FormBody;
 import okhttp3.Interceptor;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class TestOkHttp {
@@ -42,9 +44,8 @@ public class TestOkHttp {
     @Test
     public void testPost(){
         OkHttpClient client = new OkHttpClient();
-        FormBody body = new FormBody.Builder()
-                .add("name", "zouxiaobang")
-                .build();
+        MediaType mediaType = MediaType.parse("application/json; charset=utf-8");
+        RequestBody body = RequestBody.create(mediaType, "{\"name\",\"zouxiaobang\"}");
         Request request = new Request.Builder()
                 .url("http://httpbin.org/post")
                 .post(body)
