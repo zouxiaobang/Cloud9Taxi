@@ -1,3 +1,14 @@
 <resources>
     <string name="app_name">Cloud9Car</string>
+    <string name="login">登录</string>
+    <string name="pls_input_phone">请输入手机号码</string>
+    <string name="next">下一步</string>
+    <string name="sms_code_input">请输入验证码</string>
+    <string name="sms_code_send_phone">验证码已发送至%s</string>
+    <string name="resend">重新发送</string>
+    <string name="sms_code_error">验证码错误</string>
+    <string name="sending">正在向%s发送短信验证码</string>
+    <string name="after_time_resend">%d秒后重新发送</string>
+    <string name="sms_send_fail">服务器异常，验证码未发送成功</string>
+    <string name="sms_check_fail">验证码输入错误</string>
 </resources>

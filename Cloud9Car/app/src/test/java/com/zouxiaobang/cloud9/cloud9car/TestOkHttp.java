@@ -27,7 +27,7 @@ public class TestOkHttp {
     public void testGet(){
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder()
-                .url("http://httpbin.org/get")
+                .url("http://cloud.bmob.cn/f34e28da5816433d/getMsgCode?phone=${phone}")
                 .build();
 
         try {

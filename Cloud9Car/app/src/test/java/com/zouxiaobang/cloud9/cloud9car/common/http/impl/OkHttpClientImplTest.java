@@ -19,16 +19,16 @@ public class OkHttpClientImplTest {
     @Before
     public void setUp() throws Exception {
         mIHttpClient = new OkHttpClientImpl();
-        API.Config.setDebug(false);
+        API.Config.setDebug(true);
     }
 
     @Test
     public void get() throws Exception {
         //url
-        String url = API.Config.getDomain() + API.TEST_GET;
+        String url = API.Config.getDomain() + API.GET_SMS_CODE;
         //request对象
         IRequest request = new BaseRequest(url);
-        request.setBody("uid", "123456");
+        request.setBody("phone", "123456");
         request.setHeader("testHeader", "test header");
         //测试GET
         IRespone respone = mIHttpClient.get(request,false);
@@ -39,7 +39,7 @@ public class OkHttpClientImplTest {
     @Test
     public void post() throws Exception {
         //获取url
-        String url = API.Config.getDomain() + API.TEST_POST;
+        String url = API.Config.getDomain() + API.TEST_GET;
         //创建request对象
         IRequest request = new BaseRequest(url);
         request.setBody("uid", "123456");
