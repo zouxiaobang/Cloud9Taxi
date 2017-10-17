@@ -20,4 +20,6 @@
     <string name="pw_is_not_equals">两次输入的密码不一致</string>
     <string name="register_suc_and_login">注册成功，正在为您自动登录</string>
     <string name="rejectPermission">请在设置中修改权限</string>
+    <string name="login_suc">登录成功</string>
+    <string name="pw_error">密码输入错误</string>
 </resources>

@@ -15,9 +15,13 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
+import com.zouxiaobang.cloud9.cloud9car.C9Application;
 import com.zouxiaobang.cloud9.cloud9car.R;
+import com.zouxiaobang.cloud9.cloud9car.account.response.Account;
+import com.zouxiaobang.cloud9.cloud9car.account.response.LoginResponse;
 import com.zouxiaobang.cloud9.cloud9car.common.http.IHttpClient;
 import com.zouxiaobang.cloud9.cloud9car.common.http.IRequest;
 import com.zouxiaobang.cloud9.cloud9car.common.http.IRespone;
@@ -26,6 +30,7 @@ import com.zouxiaobang.cloud9.cloud9car.common.http.biz.BaseBizResponse;
 import com.zouxiaobang.cloud9.cloud9car.common.http.impl.BaseRequest;
 import com.zouxiaobang.cloud9.cloud9car.common.http.impl.BaseRespone;
 import com.zouxiaobang.cloud9.cloud9car.common.http.impl.OkHttpClientImpl;
+import com.zouxiaobang.cloud9.cloud9car.common.storage.SharedPreferenceDao;
 import com.zouxiaobang.cloud9.cloud9car.common.utils.DevUtil;
 
 import java.lang.ref.SoftReference;
@@ -39,8 +44,8 @@ public class CreatePasswordDialog extends Dialog {
 
     private static final String TAG = "CreatePasswordDialog";
     private static final int REGISTER_SUCCESS = 1;
-    private static final int REGISTER_FAIL = -1;
     private static final int SERVER_FAIL = 100;
+    private static final int LOGIN_SUCCESS = 2;
     private TextView mTvTitle;
     private TextView mTvPhone;
     private EditText mEtPw;
@@ -126,7 +131,7 @@ public class CreatePasswordDialog extends Dialog {
                         if (bizResponse.getCode() == BaseBizResponse.STATE_OK){
                             mHandler.sendEmptyMessage(REGISTER_SUCCESS);
                         } else {
-                            mHandler.sendEmptyMessage(REGISTER_FAIL);
+                            mHandler.sendEmptyMessage(SERVER_FAIL);
                         }
                     } else {
                         mHandler.sendEmptyMessage(SERVER_FAIL);
@@ -177,12 +182,25 @@ public class CreatePasswordDialog extends Dialog {
                 case REGISTER_SUCCESS:
                     dialog.showRegisterSuccess();
                     break;
-                case REGISTER_FAIL:
+                case LOGIN_SUCCESS:
+                    dialog.showLoginSuccess();
                     break;
                 case SERVER_FAIL:
+                    dialog.showServerError();
                     break;
             }
         }
+    }
+
+    private void showLoginSuccess() {
+        dismiss();
+        Toast.makeText(getContext(), getContext().getString(R.string.login_suc), Toast.LENGTH_SHORT).show();
+    }
+
+    private void showServerError() {
+        mTvTips.setVisibility(View.VISIBLE);
+        mTvTips.setText(getContext().getString(R.string.error_server));
+        mTvTips.setTextColor(getContext().getResources().getColor(R.color.error_red));
     }
 
     private void showRegisterSuccess() {
@@ -192,7 +210,39 @@ public class CreatePasswordDialog extends Dialog {
         mTvTips.setText(getContext().getString(R.string.register_suc_and_login));
         mTvTips.setTextColor(getContext().getResources().getColor(R.color.color_text_normal));
 
-        // TODO: 10/16/17 请求网络，完成自动登录
+        //  10/16/17 请求网络，完成自动登录
+        new Thread(){
+            @Override
+            public void run() {
+                //获取url
+                String url = API.Config.getDomain() + API.LOGIN;
+                //创建Request
+                IRequest request = new BaseRequest(url);
+                request.setBody("phone", mPhoneStr);
+                request.setBody("password", mEtPw.getText().toString());
+                //执行过程
+                IRespone respone = mClient.post(request, false);
+                Log.d(TAG, "run: " + respone.getData());
 
+                //获取数据
+                if (respone.getCode() == BaseRespone.STATE_OK){
+                    LoginResponse loginResponse
+                            = new Gson().fromJson(respone.getData(), LoginResponse.class);
+                    if (loginResponse.getCode() == BaseBizResponse.STATE_OK){
+                        // 10/17/17 保存登录信息
+                        Account account = loginResponse.getData();
+                        SharedPreferenceDao dao
+                                = new SharedPreferenceDao(C9Application.getInstance(),
+                                SharedPreferenceDao.FILE_ACCOUNT);
+                        dao.save(SharedPreferenceDao.KEY_ACCOUNT, account);
+                        mHandler.sendEmptyMessage(LOGIN_SUCCESS);
+                    } else {
+                        mHandler.sendEmptyMessage(SERVER_FAIL);
+                    }
+                } else {
+                    mHandler.sendEmptyMessage(SERVER_FAIL);
+                }
+            }
+        }.start();
     }
 }

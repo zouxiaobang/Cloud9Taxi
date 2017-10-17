@@ -248,11 +248,12 @@ public class SmsCodeDialog extends Dialog {
         dismiss();
         if (!exists){
             //  10/16/17 用户不存在，进入注册对话框
-            dismiss();
             CreatePasswordDialog dialog = new CreatePasswordDialog(getContext(), mPhone);
             dialog.show();
         } else {
-            // TODO: 10/16/17 用户存在，进入登录
+            //  10/16/17 用户存在，进入登录
+            LoginDialog dialog = new LoginDialog(getContext(), mPhone);
+            dialog.show();
         }
     }
 

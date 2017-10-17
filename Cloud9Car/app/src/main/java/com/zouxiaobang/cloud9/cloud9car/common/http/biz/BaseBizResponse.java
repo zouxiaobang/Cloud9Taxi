@@ -7,8 +7,22 @@ package com.zouxiaobang.cloud9.cloud9car.common.http.biz;
 
 public class BaseBizResponse {
     public static final int STATE_OK = 200;
+    /**
+     * 用户已经存在
+     */
     public static final int STATE_USER_EXISTS = 100003;
+    /**
+     * 用户不存在
+     */
     public static final int STATE_USER_NOT_EXISTS = 100002;
+    /**
+     * 密码输入错误
+     */
+    public static final int STATE_PW_ERR = 100005;
+    /**
+     * Token过期
+     */
+    public static final int STATE_TOKEN_INVALID = 100006;
 
     /**
      * 状态码
