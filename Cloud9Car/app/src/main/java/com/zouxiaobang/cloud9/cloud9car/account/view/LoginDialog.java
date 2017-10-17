@@ -19,8 +19,12 @@ import android.widget.Toast;
 import com.google.gson.Gson;
 import com.zouxiaobang.cloud9.cloud9car.C9Application;
 import com.zouxiaobang.cloud9.cloud9car.R;
+import com.zouxiaobang.cloud9.cloud9car.account.model.AccountManagerImpl;
+import com.zouxiaobang.cloud9.cloud9car.account.model.IAccountManager;
 import com.zouxiaobang.cloud9.cloud9car.account.model.response.Account;
 import com.zouxiaobang.cloud9.cloud9car.account.model.response.LoginResponse;
+import com.zouxiaobang.cloud9.cloud9car.account.presenter.ILoginDialogPresenter;
+import com.zouxiaobang.cloud9.cloud9car.account.presenter.LoginDialogPresenterImpl;
 import com.zouxiaobang.cloud9.cloud9car.common.http.IHttpClient;
 import com.zouxiaobang.cloud9.cloud9car.common.http.IRequest;
 import com.zouxiaobang.cloud9.cloud9car.common.http.IRespone;
@@ -36,7 +40,7 @@ import java.lang.ref.SoftReference;
  * Created by zouxiaobang on 10/17/17.
  */
 
-public class LoginDialog extends Dialog {
+public class LoginDialog extends Dialog implements ILoginDialogView {
     private static final String TAG = "LoginDialog";
     private static final int LOGIN_SUCCESS = 1;
     private static final int SERVER_FAIL = 2;
@@ -48,14 +52,16 @@ public class LoginDialog extends Dialog {
     private TextView mTvTips;
 
     private String mPhoneStr;
-    private IHttpClient mClient;
-    private MyHander mHander;
+    private ILoginDialogPresenter mPresenter;
 
     public LoginDialog(@NonNull Context context, String phone) {
         super(context);
         mPhoneStr = phone;
-        mClient = new OkHttpClientImpl();
-        mHander = new MyHander(this);
+
+        IAccountManager manager = new AccountManagerImpl(new OkHttpClientImpl(),
+                new SharedPreferenceDao(C9Application.getInstance(),
+                        SharedPreferenceDao.FILE_ACCOUNT));
+        mPresenter = new LoginDialogPresenterImpl(this, manager);
     }
 
     public LoginDialog(@NonNull Context context, @StyleRes int themeResId) {
@@ -99,51 +105,7 @@ public class LoginDialog extends Dialog {
      */
     private void submit() {
         final String password = mEtPw.getText().toString();
-        //登录
-        new Thread(){
-            @Override
-            public void run() {
-                //获取url
-                String url = API.Config.getDomain() + API.LOGIN;
-                //创建Request
-                IRequest request = new BaseRequest(url);
-                request.setBody("phone", mPhoneStr);
-                request.setBody("password", password);
-                //执行请求
-                IRespone respone = mClient.post(request, false);
-                Log.d(TAG, "run: " + respone.getData());
-                //处理Response
-                if (respone.getCode() == BaseBizResponse.STATE_OK){
-                    LoginResponse loginResponse
-                            = new Gson().fromJson(respone.getData(), LoginResponse.class);
-
-                    if (loginResponse.getCode() == BaseBizResponse.STATE_OK){
-                        Account account = loginResponse.getData();
-                        SharedPreferenceDao dao
-                                = new SharedPreferenceDao(C9Application.getInstance(),
-                                SharedPreferenceDao.FILE_ACCOUNT);
-                        dao.save(SharedPreferenceDao.KEY_ACCOUNT, account);
-                        mHander.sendEmptyMessage(LOGIN_SUCCESS);
-                    } else if (loginResponse.getCode() == BaseBizResponse.STATE_PW_ERR){
-                        mHander.sendEmptyMessage(PASSWORD_ERROR);
-                    } else {
-                        mHander.sendEmptyMessage(SERVER_FAIL);
-                    }
-                } else {
-                    mHander.sendEmptyMessage(SERVER_FAIL);
-                }
-            }
-        }.start();
-    }
-
-    private void showLoginSuccess() {
-        dismiss();
-        mPbLoading.setVisibility(View.GONE);
-        mBtnConfirm.setVisibility(View.GONE);
-        mTvTips.setVisibility(View.VISIBLE);
-        mTvTips.setText(getContext().getString(R.string.login_suc));
-        mTvTips.setTextColor(getContext().getResources().getColor(R.color.color_text_normal));
-        Toast.makeText(getContext(), getContext().getString(R.string.login_suc), Toast.LENGTH_SHORT).show();
+        mPresenter.requestLogin(mPhoneStr, password);
     }
 
     private void showServerError() {
@@ -165,30 +127,31 @@ public class LoginDialog extends Dialog {
         super.dismiss();
     }
 
-    static class MyHander extends Handler{
-        private SoftReference<LoginDialog> mLoginDialogSoftReference;
-        public MyHander(LoginDialog dialog){
-            mLoginDialogSoftReference = new SoftReference<LoginDialog>(dialog);
-        }
+    @Override
+    public void showLoading() {
+        mPbLoading.setVisibility(View.VISIBLE);
+    }
 
-        @Override
-        public void handleMessage(Message msg) {
-            LoginDialog dialog = mLoginDialogSoftReference.get();
-            if (dialog == null){
-                return;
-            }
-
-            switch (msg.what){
-                case LOGIN_SUCCESS:
-                    dialog.showLoginSuccess();
-                    break;
-                case SERVER_FAIL:
-                    dialog.showServerError();
-                    break;
-                case PASSWORD_ERROR:
-                    dialog.showPwError();
-                    break;
-            }
+    @Override
+    public void showError(int code, String msg) {
+        switch (code){
+            case IAccountManager.PASSWORD_ERROR:
+                showPwError();
+                break;
+            case IAccountManager.SMS_SERVER_FAIL:
+                showServerError();
+                break;
         }
+    }
+
+    @Override
+    public void showLoginSuccess() {
+        dismiss();
+        mPbLoading.setVisibility(View.GONE);
+        mBtnConfirm.setVisibility(View.GONE);
+        mTvTips.setVisibility(View.VISIBLE);
+        mTvTips.setText(getContext().getString(R.string.login_suc));
+        mTvTips.setTextColor(getContext().getResources().getColor(R.color.color_text_normal));
+        Toast.makeText(getContext(), getContext().getString(R.string.login_suc), Toast.LENGTH_SHORT).show();
     }
 }

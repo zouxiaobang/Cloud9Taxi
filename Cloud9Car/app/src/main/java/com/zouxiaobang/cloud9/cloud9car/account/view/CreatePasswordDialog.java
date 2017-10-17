@@ -20,8 +20,12 @@ import android.widget.Toast;
 import com.google.gson.Gson;
 import com.zouxiaobang.cloud9.cloud9car.C9Application;
 import com.zouxiaobang.cloud9.cloud9car.R;
+import com.zouxiaobang.cloud9.cloud9car.account.model.AccountManagerImpl;
+import com.zouxiaobang.cloud9.cloud9car.account.model.IAccountManager;
 import com.zouxiaobang.cloud9.cloud9car.account.model.response.Account;
 import com.zouxiaobang.cloud9.cloud9car.account.model.response.LoginResponse;
+import com.zouxiaobang.cloud9.cloud9car.account.presenter.CreatePasswordDialogPresenterImpl;
+import com.zouxiaobang.cloud9.cloud9car.account.presenter.ICreatePasswordDialogPresenter;
 import com.zouxiaobang.cloud9.cloud9car.common.http.IHttpClient;
 import com.zouxiaobang.cloud9.cloud9car.common.http.IRequest;
 import com.zouxiaobang.cloud9.cloud9car.common.http.IRespone;
@@ -40,13 +44,12 @@ import java.lang.ref.SoftReference;
  * 创建密码和修改密码的对话框
  */
 
-public class CreatePasswordDialog extends Dialog {
+public class CreatePasswordDialog extends Dialog implements ICreatePasswordDialogView {
 
     private static final String TAG = "CreatePasswordDialog";
     private static final int REGISTER_SUCCESS = 1;
     private static final int SERVER_FAIL = 100;
     private static final int LOGIN_SUCCESS = 2;
-    private TextView mTvTitle;
     private TextView mTvPhone;
     private EditText mEtPw;
     private EditText mEtPw1;
@@ -54,16 +57,18 @@ public class CreatePasswordDialog extends Dialog {
     private ProgressBar mPbLoading;
     private TextView mTvTips;
 
-    private IHttpClient mClient;
     private String mPhoneStr;
-    private MyHandler mHandler;
+    private ICreatePasswordDialogPresenter mPresenter;
 
     public CreatePasswordDialog(@NonNull Context context, String phone) {
         super(context);
 
         this.mPhoneStr = phone;
-        mClient = new OkHttpClientImpl();
-        mHandler = new MyHandler(this);
+
+        IAccountManager manager = new AccountManagerImpl(new OkHttpClientImpl(),
+                new SharedPreferenceDao(C9Application.getInstance(),
+                        SharedPreferenceDao.FILE_ACCOUNT));
+        mPresenter = new CreatePasswordDialogPresenterImpl(this, manager);
     }
 
     public CreatePasswordDialog(@NonNull Context context, @StyleRes int themeResId) {
@@ -78,7 +83,6 @@ public class CreatePasswordDialog extends Dialog {
         View root = inflater.inflate(R.layout.dialog_create_pw, null);
         setContentView(root);
 
-        mTvTitle = (TextView) findViewById(R.id.dialog_title);
         mTvPhone = (TextView) findViewById(R.id.phone);
         mEtPw = (EditText) findViewById(R.id.pw);
         mEtPw1 = (EditText) findViewById(R.id.pw1);
@@ -109,140 +113,77 @@ public class CreatePasswordDialog extends Dialog {
         String pw1 = mEtPw1.getText().toString();
         final String phone = mPhoneStr;
 
-        if (checkPassword(pw, pw1)){
+        if (mPresenter.requestCheckPw(pw, pw1)){
             // 注册
-            new Thread(){
-                @Override
-                public void run() {
-                    //获取url
-                    String url = API.Config.getDomain() + API.REGISTER;
-                    //创建Request
-                    IRequest request = new BaseRequest(url);
-                    request.setBody("phone", phone);
-                    request.setBody("password", pw);
-                    request.setBody("uid", DevUtil.UUID(getContext()));
-                    //执行过程
-                    IRespone respone = mClient.post(request, false);
-                    Log.d(TAG, "run: " + respone.getData());
-                    //获取数据
-                    if (respone.getCode() == BaseRespone.STATE_OK){
-                        BaseBizResponse bizResponse
-                                = new Gson().fromJson(respone.getData(), BaseBizResponse.class);
-                        if (bizResponse.getCode() == BaseBizResponse.STATE_OK){
-                            mHandler.sendEmptyMessage(REGISTER_SUCCESS);
-                        } else {
-                            mHandler.sendEmptyMessage(SERVER_FAIL);
-                        }
-                    } else {
-                        mHandler.sendEmptyMessage(SERVER_FAIL);
-                    }
-                }
-            }.start();
+            mPresenter.requestRegister(phone, pw);
         }
     }
 
-    private boolean checkPassword(String pw, String pw1) {
-        if (TextUtils.isEmpty(pw)){
-            mTvTips.setVisibility(View.VISIBLE);
-            mTvTips.setText(getContext().getString(R.string.pw_is_null));
-            mTvTips.setTextColor(getContext().getResources().getColor(R.color.error_red));
-            return false;
-        }
-        if (!pw.equals(pw1)){
-            mTvTips.setVisibility(View.VISIBLE);
-            mTvTips.setText(getContext().getString(R.string.pw_is_not_equals));
-            mTvTips.setTextColor(getContext().getResources().getColor(R.color.error_red));
-            return false;
-        }
-        return true;
-    }
 
     @Override
     public void dismiss() {
         super.dismiss();
     }
 
-    static class MyHandler extends Handler{
-        private SoftReference<CreatePasswordDialog> mCreatePasswordDialogSoftReference;
+    @Override
+    public void showLoading() {
+        showOrHideLoading(true);
+    }
 
-        public MyHandler(CreatePasswordDialog dialog){
-            mCreatePasswordDialogSoftReference = new SoftReference<CreatePasswordDialog>(dialog);
-        }
+    @Override
+    public void showPasswordNull() {
+        mTvTips.setVisibility(View.VISIBLE);
+        mTvTips.setText(getContext().getString(R.string.pw_is_null));
+        mTvTips.setTextColor(getContext().getResources().getColor(R.color.error_red));
+    }
 
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
+    @Override
+    public void showPasswordNotEqual() {
+        mTvTips.setVisibility(View.VISIBLE);
+        mTvTips.setText(getContext().getString(R.string.pw_is_not_equals));
+        mTvTips.setTextColor(getContext().getResources().getColor(R.color.error_red));
+    }
 
-            CreatePasswordDialog dialog = mCreatePasswordDialogSoftReference.get();
-            if (dialog == null)
-                return;
 
-            //  10/16/17 UI事件响应
-            switch (msg.what){
-                case REGISTER_SUCCESS:
-                    dialog.showRegisterSuccess();
-                    break;
-                case LOGIN_SUCCESS:
-                    dialog.showLoginSuccess();
-                    break;
-                case SERVER_FAIL:
-                    dialog.showServerError();
-                    break;
-            }
+    @Override
+    public void showError(int code, String msg) {
+        showOrHideLoading(false);
+        if (code == IAccountManager.SMS_SERVER_FAIL){
+            mTvTips.setVisibility(View.VISIBLE);
+            mTvTips.setText(getContext().getString(R.string.error_server));
+            mTvTips.setTextColor(getContext().getResources().getColor(R.color.error_red));
+        } else if (code == IAccountManager.PASSWORD_ERROR){
+            showOrHideLoading(false);
+            mTvTips.setVisibility(View.VISIBLE);
+            mTvTips.setText(getContext().getString(R.string.login_error));
+            mTvTips.setTextColor(getContext().getResources().getColor(R.color.error_red));
         }
     }
 
-    private void showLoginSuccess() {
+    @Override
+    public void showLoginSuccess() {
         dismiss();
         Toast.makeText(getContext(), getContext().getString(R.string.login_suc), Toast.LENGTH_SHORT).show();
     }
 
-    private void showServerError() {
-        mTvTips.setVisibility(View.VISIBLE);
-        mTvTips.setText(getContext().getString(R.string.error_server));
-        mTvTips.setTextColor(getContext().getResources().getColor(R.color.error_red));
-    }
-
-    private void showRegisterSuccess() {
-        mPbLoading.setVisibility(View.VISIBLE);
-        mBtnConfirm.setVisibility(View.GONE);
+    @Override
+    public void showRegisterSuccess() {
+        showOrHideLoading(true);
         mTvTips.setVisibility(View.VISIBLE);
         mTvTips.setText(getContext().getString(R.string.register_suc_and_login));
         mTvTips.setTextColor(getContext().getResources().getColor(R.color.color_text_normal));
 
         //  10/16/17 请求网络，完成自动登录
-        new Thread(){
-            @Override
-            public void run() {
-                //获取url
-                String url = API.Config.getDomain() + API.LOGIN;
-                //创建Request
-                IRequest request = new BaseRequest(url);
-                request.setBody("phone", mPhoneStr);
-                request.setBody("password", mEtPw.getText().toString());
-                //执行过程
-                IRespone respone = mClient.post(request, false);
-                Log.d(TAG, "run: " + respone.getData());
+        mPresenter.requestLogin(mPhoneStr, mEtPw.getText().toString());
+    }
 
-                //获取数据
-                if (respone.getCode() == BaseRespone.STATE_OK){
-                    LoginResponse loginResponse
-                            = new Gson().fromJson(respone.getData(), LoginResponse.class);
-                    if (loginResponse.getCode() == BaseBizResponse.STATE_OK){
-                        // 10/17/17 保存登录信息
-                        Account account = loginResponse.getData();
-                        SharedPreferenceDao dao
-                                = new SharedPreferenceDao(C9Application.getInstance(),
-                                SharedPreferenceDao.FILE_ACCOUNT);
-                        dao.save(SharedPreferenceDao.KEY_ACCOUNT, account);
-                        mHandler.sendEmptyMessage(LOGIN_SUCCESS);
-                    } else {
-                        mHandler.sendEmptyMessage(SERVER_FAIL);
-                    }
-                } else {
-                    mHandler.sendEmptyMessage(SERVER_FAIL);
-                }
-            }
-        }.start();
+    private void showOrHideLoading(boolean show){
+        if (show){
+            mPbLoading.setVisibility(View.VISIBLE);
+            mBtnConfirm.setVisibility(View.GONE);
+        } else {
+            mPbLoading.setVisibility(View.GONE);
+            mBtnConfirm.setVisibility(View.VISIBLE);
+        }
     }
 }

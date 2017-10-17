@@ -9,7 +9,7 @@ import android.os.Handler;
 import android.widget.ImageView;
 
 import com.zouxiaobang.cloud9.cloud9car.R;
-import com.zouxiaobang.cloud9.cloud9car.main.MainActivity;
+import com.zouxiaobang.cloud9.cloud9car.main.view.MainActivity;
 
 public class SplashActivity extends Activity {
 

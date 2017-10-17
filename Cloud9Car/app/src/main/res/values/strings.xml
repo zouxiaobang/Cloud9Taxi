@@ -22,4 +22,6 @@
     <string name="rejectPermission">请在设置中修改权限</string>
     <string name="login_suc">登录成功</string>
     <string name="pw_error">密码输入错误</string>
+    <string name="login_error">登录失败</string>
+    <string name="token_invalid">Token失效</string>
 </resources>

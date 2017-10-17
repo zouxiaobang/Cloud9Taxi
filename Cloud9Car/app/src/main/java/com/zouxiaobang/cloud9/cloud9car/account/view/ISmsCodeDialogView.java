@@ -12,7 +12,14 @@ public interface ISmsCodeDialogView extends IView {
     void showCountDownTimer();
 
     /**
-     * 关闭视图
+     * 显示验证状态
+     * @param b
      */
-    void close();
+    void showSmsCodeCheckState(boolean b);
+
+    /**
+     * 显示用户是否存在
+     * @param b
+     */
+    void showUserExists(boolean b);
 }

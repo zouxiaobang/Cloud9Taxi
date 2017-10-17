@@ -9,6 +9,19 @@ import android.os.Handler;
 
 public interface IAccountManager {
 
+    public static final int SMS_SERVER_FAIL = 100;
+    public static final int SMS_SEND_SUCCESS = 1;
+    public static final int SMS_SEND_FAIL = -1;
+    public static final int SMS_CHECK_SUCCESS = 2;
+    public static final int SMS_CHECK_FAIL = -2;
+    public static final int USER_EXISTS = 3;
+    public static final int USER_NOT_EXISTS = -3;
+    public static final int REGISTER_SUCCESS = 4;
+    public static final int LOGIN_SUCCESS = 5;
+    public static final int TOKEN_INVALID = -6;
+    public static final int PASSWORD_ERROR = -7;
+
+
     /**
      * 设置Handler
      * 用于解决Model和Presenter之间的调用

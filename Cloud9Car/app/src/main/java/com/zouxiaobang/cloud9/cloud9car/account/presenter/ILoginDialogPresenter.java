@@ -5,8 +5,9 @@ package com.zouxiaobang.cloud9.cloud9car.account.presenter;
  */
 
 public interface ILoginDialogPresenter {
+
     /**
-     * 根据Token进行登录
+     * 用户登录
      */
-    void loginByToken();
+    void requestLogin(String phone, String password);
 }

@@ -11,19 +11,19 @@ public interface ICreatePasswordDialogPresenter {
      * @param pw
      * @param pw1
      */
-    void checkPw(String pw, String pw1);
+    boolean requestCheckPw(String pw, String pw1);
 
     /**
      * 注册
      * @param phone
      * @param password
      */
-    void register(String phone, String password);
+    void requestRegister(String phone, String password);
 
     /**
      * 登录
      * @param phone
      * @param password
      */
-    void login(String phone, String password);
+    void requestLogin(String phone, String password);
 }

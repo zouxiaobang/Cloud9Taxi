@@ -16,4 +16,13 @@ public interface ICreatePasswordDialogView extends IView {
      */
     void showLoginSuccess();
 
+    /**
+     * 提示密码不能为空
+     */
+    void showPasswordNull();
+
+    /**
+     * 提示两次输入密码不同
+     */
+    void showPasswordNotEqual();
 }
