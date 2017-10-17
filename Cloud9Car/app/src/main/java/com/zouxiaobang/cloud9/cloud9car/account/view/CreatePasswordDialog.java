@@ -20,8 +20,8 @@ import android.widget.Toast;
 import com.google.gson.Gson;
 import com.zouxiaobang.cloud9.cloud9car.C9Application;
 import com.zouxiaobang.cloud9.cloud9car.R;
-import com.zouxiaobang.cloud9.cloud9car.account.response.Account;
-import com.zouxiaobang.cloud9.cloud9car.account.response.LoginResponse;
+import com.zouxiaobang.cloud9.cloud9car.account.model.response.Account;
+import com.zouxiaobang.cloud9.cloud9car.account.model.response.LoginResponse;
 import com.zouxiaobang.cloud9.cloud9car.common.http.IHttpClient;
 import com.zouxiaobang.cloud9.cloud9car.common.http.IRequest;
 import com.zouxiaobang.cloud9.cloud9car.common.http.IRespone;
@@ -110,7 +110,7 @@ public class CreatePasswordDialog extends Dialog {
         final String phone = mPhoneStr;
 
         if (checkPassword(pw, pw1)){
-            //将手机号和密码保存到网络
+            // 注册
             new Thread(){
                 @Override
                 public void run() {

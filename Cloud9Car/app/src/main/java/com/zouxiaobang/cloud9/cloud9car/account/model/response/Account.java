@@ -1,4 +1,4 @@
-package com.zouxiaobang.cloud9.cloud9car.account.response;
+package com.zouxiaobang.cloud9.cloud9car.account.model.response;
 
 /**
  * Created by zouxiaobang on 10/17/17.

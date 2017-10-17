@@ -199,6 +199,7 @@ public class SmsCodeDialog extends Dialog {
     private void resend() {
         String template = "正在向%s发送短信验证码";
         mTvPhone.setText(String.format(template, mPhone));
+        requestSendSmsCode();
     }
 
     private void showLoading() {

@@ -1,4 +1,4 @@
-package com.zouxiaobang.cloud9.cloud9car.account.response;
+package com.zouxiaobang.cloud9.cloud9car.account.model.response;
 
 import com.zouxiaobang.cloud9.cloud9car.common.http.biz.BaseBizResponse;
 
