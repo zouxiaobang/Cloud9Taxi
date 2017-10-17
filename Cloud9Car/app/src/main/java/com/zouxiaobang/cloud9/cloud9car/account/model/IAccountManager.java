@@ -1,11 +1,23 @@
 package com.zouxiaobang.cloud9.cloud9car.account.model;
 
+import android.os.Handler;
+
 /**
  * Created by zouxiaobang on 10/17/17.
  * Model层接口
  */
 
 public interface IAccountManager {
+
+    /**
+     * 设置Handler
+     * 用于解决Model和Presenter之间的调用
+     * Presenter: UI线程
+     * Model: 子线程
+     * @param handler
+     */
+    void setHandler(Handler handler);
+
     /**
      * 下发验证码
      * @param phone
