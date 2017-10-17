@@ -66,8 +66,9 @@ public class PhoneInputDialog extends Dialog {
         mNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                dismiss();
                 String phone = mPhone.getText().toString();
-                //// TODO: 10/16/17 显示输入验证码的输入框
+                // 10/16/17 显示输入验证码的输入框
                 SmsCodeDialog dialog = new SmsCodeDialog(getContext(), phone);
                 dialog.show();
             }

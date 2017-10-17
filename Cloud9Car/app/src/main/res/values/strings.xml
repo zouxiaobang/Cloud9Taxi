@@ -11,4 +11,13 @@
     <string name="after_time_resend">%d秒后重新发送</string>
     <string name="sms_send_fail">服务器异常，验证码未发送成功</string>
     <string name="sms_check_fail">验证码输入错误</string>
+    <string name="error_server">服务器繁忙</string>
+    <string name="create_pw">创建密码</string>
+    <string name="pls_input_pw">请输入密码</string>
+    <string name="pls_input_pw_again">请再次输入密码</string>
+    <string name="confirm">提交</string>
+    <string name="pw_is_null">密码不能为空</string>
+    <string name="pw_is_not_equals">两次输入的密码不一致</string>
+    <string name="register_suc_and_login">注册成功，正在为您自动登录</string>
+    <string name="rejectPermission">请在设置中修改权限</string>
 </resources>

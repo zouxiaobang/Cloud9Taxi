@@ -7,6 +7,8 @@ package com.zouxiaobang.cloud9.cloud9car.common.http.biz;
 
 public class BaseBizResponse {
     public static final int STATE_OK = 200;
+    public static final int STATE_USER_EXISTS = 100003;
+    public static final int STATE_USER_NOT_EXISTS = 100002;
 
     /**
      * 状态码

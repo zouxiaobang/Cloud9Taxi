@@ -40,6 +40,9 @@ public class SmsCodeDialog extends Dialog {
     private static final int SMS_SEND_FAIL = -1;
     private static final int SMS_CHECK_SUCCESS = 2;
     private static final int SMS_CHECK_FAIL = -2;
+    private static final int USER_EXISTS = 3;
+    private static final int USER_NOT_EXISTS = -3;
+    private static final int SMS_SERVICE_FAIL = 100;
     private TextView mTvPhone;
     private Button mBtnResend;
     private VerificationCodeInput mVerificationCodeInput;
@@ -211,11 +214,47 @@ public class SmsCodeDialog extends Dialog {
         } else {
             mTvError.setVisibility(View.GONE);
             mPbLoading.setVisibility(View.VISIBLE);
-            // TODO: 10/16/17 检查用户是否存在
+            //  10/16/17 检查用户是否存在
+            new Thread(){
+                @Override
+                public void run() {
+                    //创建url
+                    String url = API.Config.getDomain() + API.CHECK_USER_EXISTS;
+                    //创建Request对象
+                    IRequest request = new BaseRequest(url);
+                    request.setBody("phone", mPhone);
+                    IRespone respone = mClient.get(request, false);
+                    Log.d(TAG, "run: " + respone.getCode() + " : " + respone.getData());
+                    /** {"code":200,"data":{},"msg":"succ SMS code"} **/
 
+                    if (respone.getCode() == BaseBizResponse.STATE_OK){
+                        BaseBizResponse bizResponse = new Gson().fromJson(respone.getData(), BaseBizResponse.class);
+                        if (bizResponse.getCode() == BaseBizResponse.STATE_USER_EXISTS){
+                            mHandler.sendEmptyMessage(USER_EXISTS);
+                        } else if (bizResponse.getCode() == BaseBizResponse.STATE_USER_NOT_EXISTS){
+                            mHandler.sendEmptyMessage(USER_NOT_EXISTS);
+                        }
+                    } else {
+                        mHandler.sendEmptyMessage(SMS_SERVICE_FAIL);
+                    }
+                }
+            }.start();
         }
     }
 
+    public void showUserExists(boolean exists){
+        mPbLoading.setVisibility(View.GONE);
+        mTvError.setVisibility(View.GONE);
+        dismiss();
+        if (!exists){
+            //  10/16/17 用户不存在，进入注册对话框
+            dismiss();
+            CreatePasswordDialog dialog = new CreatePasswordDialog(getContext(), mPhone);
+            dialog.show();
+        } else {
+            // TODO: 10/16/17 用户存在，进入登录
+        }
+    }
 
     /**
      * 使用静态类，防止内存泄漏
@@ -251,6 +290,19 @@ public class SmsCodeDialog extends Dialog {
                     break;
                 case SMS_CHECK_FAIL:
                     dialog.showVerifyState(false);
+                    break;
+                case USER_EXISTS:
+                    //  10/16/17 用户存在
+                    dialog.showUserExists(true);
+                    break;
+                case USER_NOT_EXISTS:
+                    //  10/16/17 用户不存在
+                    dialog.showUserExists(false);
+                    break;
+                case SMS_SERVICE_FAIL:
+                    Toast.makeText(dialog.getContext(),
+                            dialog.getContext().getString(R.string.error_server),
+                            Toast.LENGTH_SHORT).show();
                     break;
             }
         }
