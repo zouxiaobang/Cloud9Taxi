@@ -21,6 +21,7 @@ import com.zouxiaobang.cloud9.cloud9car.account.model.AccountManagerImpl;
 import com.zouxiaobang.cloud9.cloud9car.account.model.IAccountManager;
 import com.zouxiaobang.cloud9.cloud9car.account.presenter.ISmsCodeDialogPresenter;
 import com.zouxiaobang.cloud9.cloud9car.account.presenter.SmsCodeDialogPresenterImpl;
+import com.zouxiaobang.cloud9.cloud9car.common.databus.RxBus;
 import com.zouxiaobang.cloud9.cloud9car.common.http.IHttpClient;
 import com.zouxiaobang.cloud9.cloud9car.common.http.impl.OkHttpClientImpl;
 import com.zouxiaobang.cloud9.cloud9car.common.storage.SharedPreferenceDao;
@@ -89,6 +90,8 @@ public class SmsCodeDialog extends Dialog implements ISmsCodeDialogView {
         mTvError.setVisibility(View.GONE);
         initListener();
 
+        RxBus.getInstance().register(mPresenter);
+
         // 请求下发验证码
         mPresenter.requestSendSmsCode(mPhone);
     }
@@ -101,6 +104,8 @@ public class SmsCodeDialog extends Dialog implements ISmsCodeDialogView {
 
     public void dismiss(){
         super.dismiss();
+
+        RxBus.getInstance().unregister(mPresenter);
     }
 
     private void initListener() {

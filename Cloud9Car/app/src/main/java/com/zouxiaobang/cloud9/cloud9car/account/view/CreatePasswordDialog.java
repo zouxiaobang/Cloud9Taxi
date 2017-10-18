@@ -26,6 +26,7 @@ import com.zouxiaobang.cloud9.cloud9car.account.model.response.Account;
 import com.zouxiaobang.cloud9.cloud9car.account.model.response.LoginResponse;
 import com.zouxiaobang.cloud9.cloud9car.account.presenter.CreatePasswordDialogPresenterImpl;
 import com.zouxiaobang.cloud9.cloud9car.account.presenter.ICreatePasswordDialogPresenter;
+import com.zouxiaobang.cloud9.cloud9car.common.databus.RxBus;
 import com.zouxiaobang.cloud9.cloud9car.common.http.IHttpClient;
 import com.zouxiaobang.cloud9.cloud9car.common.http.IRequest;
 import com.zouxiaobang.cloud9.cloud9car.common.http.IRespone;
@@ -103,6 +104,8 @@ public class CreatePasswordDialog extends Dialog implements ICreatePasswordDialo
             }
         });
         mTvPhone.setText(mPhoneStr);
+
+        RxBus.getInstance().register(mPresenter);
     }
 
     /**
@@ -123,6 +126,7 @@ public class CreatePasswordDialog extends Dialog implements ICreatePasswordDialo
     @Override
     public void dismiss() {
         super.dismiss();
+        RxBus.getInstance().unregister(mPresenter);
     }
 
     @Override

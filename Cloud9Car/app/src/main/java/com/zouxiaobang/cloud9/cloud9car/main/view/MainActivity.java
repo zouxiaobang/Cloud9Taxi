@@ -17,6 +17,7 @@ import com.zouxiaobang.cloud9.cloud9car.account.model.AccountManagerImpl;
 import com.zouxiaobang.cloud9.cloud9car.account.model.response.Account;
 import com.zouxiaobang.cloud9.cloud9car.account.model.response.LoginResponse;
 import com.zouxiaobang.cloud9.cloud9car.account.view.PhoneInputDialog;
+import com.zouxiaobang.cloud9.cloud9car.common.databus.RxBus;
 import com.zouxiaobang.cloud9.cloud9car.common.http.IHttpClient;
 import com.zouxiaobang.cloud9.cloud9car.common.http.IRequest;
 import com.zouxiaobang.cloud9.cloud9car.common.http.IRespone;
@@ -54,6 +55,7 @@ public class MainActivity extends Activity implements IMainView {
                 new SharedPreferenceDao(C9Application.getInstance(),
                         SharedPreferenceDao.FILE_ACCOUNT)));
 
+        RxBus.getInstance().register(mPresenter);
 
         //  10/16/17 申请权限 -- android.permission.READ_PHONE_STATE.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -65,6 +67,12 @@ public class MainActivity extends Activity implements IMainView {
             mPresenter.requestLoginByToken();
         }
 
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        RxBus.getInstance().unregister(mPresenter);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)

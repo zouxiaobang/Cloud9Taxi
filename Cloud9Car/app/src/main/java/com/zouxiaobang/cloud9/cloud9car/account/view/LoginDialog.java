@@ -25,6 +25,7 @@ import com.zouxiaobang.cloud9.cloud9car.account.model.response.Account;
 import com.zouxiaobang.cloud9.cloud9car.account.model.response.LoginResponse;
 import com.zouxiaobang.cloud9.cloud9car.account.presenter.ILoginDialogPresenter;
 import com.zouxiaobang.cloud9.cloud9car.account.presenter.LoginDialogPresenterImpl;
+import com.zouxiaobang.cloud9.cloud9car.common.databus.RxBus;
 import com.zouxiaobang.cloud9.cloud9car.common.http.IHttpClient;
 import com.zouxiaobang.cloud9.cloud9car.common.http.IRequest;
 import com.zouxiaobang.cloud9.cloud9car.common.http.IRespone;
@@ -77,6 +78,8 @@ public class LoginDialog extends Dialog implements ILoginDialogView {
         setContentView(root);
 
         initView();
+
+        RxBus.getInstance().register(mPresenter);
     }
 
     private void initView() {
@@ -125,6 +128,8 @@ public class LoginDialog extends Dialog implements ILoginDialogView {
     @Override
     public void dismiss() {
         super.dismiss();
+
+        RxBus.getInstance().unregister(mPresenter);
     }
 
     @Override

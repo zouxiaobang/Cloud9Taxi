@@ -23,15 +23,6 @@ public interface IAccountManager {
 
 
     /**
-     * 设置Handler
-     * 用于解决Model和Presenter之间的调用
-     * Presenter: UI线程
-     * Model: 子线程
-     * @param handler
-     */
-    void setHandler(Handler handler);
-
-    /**
      * 下发验证码
      * @param phone
      */

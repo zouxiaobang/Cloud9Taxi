@@ -4,7 +4,10 @@ import android.os.Handler;
 import android.os.Message;
 
 import com.zouxiaobang.cloud9.cloud9car.account.model.IAccountManager;
+import com.zouxiaobang.cloud9.cloud9car.account.model.response.LoginResponse;
+import com.zouxiaobang.cloud9.cloud9car.account.model.response.RegisterResponse;
 import com.zouxiaobang.cloud9.cloud9car.account.view.ICreatePasswordDialogView;
+import com.zouxiaobang.cloud9.cloud9car.common.databus.RegisterBus;
 
 import java.lang.ref.WeakReference;
 
@@ -16,41 +19,37 @@ public class CreatePasswordDialogPresenterImpl implements ICreatePasswordDialogP
     private ICreatePasswordDialogView mView;
     private IAccountManager mAccountManager;
 
-
-    private static class MyHandler extends Handler {
-        WeakReference<CreatePasswordDialogPresenterImpl> mReference;
-
-        public MyHandler(CreatePasswordDialogPresenterImpl presenter) {
-            mReference = new WeakReference<CreatePasswordDialogPresenterImpl>(presenter);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            CreatePasswordDialogPresenterImpl presenter = mReference.get();
-            if (presenter == null)
-                return;
-
-            switch (msg.what){
-                case IAccountManager.REGISTER_SUCCESS:
-                    presenter.mView.showRegisterSuccess();
-                    break;
-                case IAccountManager.LOGIN_SUCCESS:
-                    presenter.mView.showLoginSuccess();
-                    break;
-                case IAccountManager.SMS_SERVER_FAIL:
-                    presenter.mView.showError(IAccountManager.SMS_SERVER_FAIL, "");
-                    break;
-                case IAccountManager.PASSWORD_ERROR:
-                    presenter.mView.showError(IAccountManager.PASSWORD_ERROR, "");
-                    break;
-            }
+    @RegisterBus
+    public void onRegister(RegisterResponse response){
+        switch (response.getCode()){
+            case IAccountManager.REGISTER_SUCCESS:
+                mView.showRegisterSuccess();
+                break;
+            case IAccountManager.SMS_SERVER_FAIL:
+                mView.showError(IAccountManager.SMS_SERVER_FAIL, "");
+                break;
         }
     }
+
+    @RegisterBus
+    public void onLogin(LoginResponse response){
+        switch (response.getCode()){
+            case IAccountManager.LOGIN_SUCCESS:
+                mView.showLoginSuccess();
+                    break;
+            case IAccountManager.PASSWORD_ERROR:
+                mView.showError(IAccountManager.PASSWORD_ERROR, "");
+                break;
+            case IAccountManager.SMS_SERVER_FAIL:
+                mView.showError(IAccountManager.SMS_SERVER_FAIL, "");
+                break;
+        }
+    }
+
     public CreatePasswordDialogPresenterImpl(ICreatePasswordDialogView view,
                                              IAccountManager manager){
         this.mView = view;
         this.mAccountManager = manager;
-        mAccountManager.setHandler(new MyHandler(this));
     }
 
     @Override

@@ -2,6 +2,8 @@ package com.zouxiaobang.cloud9.cloud9car.common.databus;
 
 import android.util.Log;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -19,13 +21,13 @@ public class RxBus {
     private static final String TAG = "RxBus";
     private static RxBus mInstance ;
 
-    private Set<DataBusSubscriber> mSubscriberSet;
+    private Set<Object> mSubscriberSet;
 
     /**
      * 注册 DataBusSubscriber
      * @param subscriber
      */
-    public synchronized void register(DataBusSubscriber subscriber){
+    public synchronized void register(Object subscriber){
         mSubscriberSet.add(subscriber);
     }
 
@@ -33,7 +35,7 @@ public class RxBus {
      * 注销 DataBusSubscriber
      * @param subscriber
      */
-    public synchronized void unregister(DataBusSubscriber subscriber){
+    public synchronized void unregister(Object subscriber){
         mSubscriberSet.remove(subscriber);
     }
 
@@ -65,10 +67,30 @@ public class RxBus {
                     @Override
                     public void call(Object data) {
                         Log.d(TAG, "call: chain process start");
-                        for (DataBusSubscriber subscriber: mSubscriberSet){
-                            subscriber.onEvent(data);
+                        for (Object subscriber: mSubscriberSet){
+                            callByAnntiationMethod(subscriber, data);
                         }
                     }
                 });
+    }
+
+    private void callByAnntiationMethod(Object target, Object data) {
+        Method[] methodArray = target.getClass().getDeclaredMethods();
+        for (int i = 0; i < methodArray.length; i++) {
+            try {
+                if (methodArray[i].isAnnotationPresent(RegisterBus.class)) {
+                    // 被 @RegisterBus 修饰的方法
+                    Class paramType = methodArray[i].getParameterTypes()[0];
+                    if (data.getClass().getName().equals(paramType.getName())) {
+                        // 参数类型和 data 一样，调用此方法
+                        methodArray[i].invoke(target, new Object[]{data});
+                    }
+                }
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
