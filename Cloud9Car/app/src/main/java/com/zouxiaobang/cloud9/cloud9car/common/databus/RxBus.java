@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import rx.Observable;
+import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.functions.Func1;
@@ -63,9 +64,28 @@ public class RxBus {
                 .subscribeOn(Schedulers.io())       //数据处理在IO层
                 .map(func)                          //数据处理过程
                 .observeOn(AndroidSchedulers.mainThread())  //在主线程中进行观察
-                .subscribe(new Action1() {
+//                .subscribe(new Action1() {
+//                    @Override
+//                    public void call(Object data) {
+//                        Log.d(TAG, "call: chain process start");
+//                        for (Object subscriber: mSubscriberSet){
+//                            callByAnntiationMethod(subscriber, data);
+//                        }
+//                    }
+//                });
+                .subscribe(new Subscriber() {
                     @Override
-                    public void call(Object data) {
+                    public void onCompleted() {
+
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onNext(Object data) {
                         Log.d(TAG, "call: chain process start");
                         for (Object subscriber: mSubscriberSet){
                             callByAnntiationMethod(subscriber, data);
