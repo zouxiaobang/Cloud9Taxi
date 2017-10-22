@@ -6,6 +6,8 @@ import android.os.Message;
 import com.zouxiaobang.cloud9.cloud9car.account.model.IAccountManager;
 import com.zouxiaobang.cloud9.cloud9car.account.model.response.LoginResponse;
 import com.zouxiaobang.cloud9.cloud9car.common.databus.RegisterBus;
+import com.zouxiaobang.cloud9.cloud9car.main.model.IMainManager;
+import com.zouxiaobang.cloud9.cloud9car.main.model.response.NearDriversResponse;
 import com.zouxiaobang.cloud9.cloud9car.main.view.IMainView;
 
 import java.lang.ref.WeakReference;
@@ -17,7 +19,7 @@ import java.lang.ref.WeakReference;
 public class MainPresenterImpl implements IMainPresenter {
     private IMainView mView;
     private IAccountManager mAccountManager;
-
+    private IMainManager mMainManager;
 
     @RegisterBus
     public void onLoginByToken(LoginResponse response){
@@ -34,14 +36,27 @@ public class MainPresenterImpl implements IMainPresenter {
         }
     }
 
-    public MainPresenterImpl(IMainView view, IAccountManager manager){
+    @RegisterBus
+    public void onNearDriverResponse(NearDriversResponse response){
+        if (response.getCode() == NearDriversResponse.STATE_OK){
+            mView.showNears(response.getData());
+        }
+    }
+
+    public MainPresenterImpl(IMainView view, IAccountManager manager, IMainManager mainManager){
         this.mView = view;
         this.mAccountManager = manager;
+        this.mMainManager = mainManager;
     }
 
 
     @Override
     public void requestLoginByToken() {
         mAccountManager.loginByToken();
+    }
+
+    @Override
+    public void fetchNearDrivers(double latitude, double longitude) {
+        mMainManager.fetchNearDriver(latitude, longitude);
     }
 }

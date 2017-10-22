@@ -38,7 +38,7 @@ import static android.R.attr.rotation;
 
 public class GaodeLbsLayer implements ILbsLayer, AMapLocationListener, LocationSource {
 
-    private static final int MY_LOCATION_ID = 1000;
+    private static final String MY_LOCATION_ID = "1000";
     private Context mContext;
     /**
      * 地图视图对象
@@ -78,7 +78,7 @@ public class GaodeLbsLayer implements ILbsLayer, AMapLocationListener, LocationS
     /**
      * 管理Marker的集合
      */
-    private Map<Integer, Marker> mMarkerMap = new HashMap<>();
+    private Map<String, Marker> mMarkerMap = new HashMap<>();
     /**
      * 是否第一次定位
      */
@@ -111,7 +111,7 @@ public class GaodeLbsLayer implements ILbsLayer, AMapLocationListener, LocationS
         //小蓝点样式
         MyLocationStyle style = new MyLocationStyle();
         //设置小蓝点的图标
-        style.myLocationIcon(BitmapDescriptorFactory.fromResource(R.drawable.location_marker));
+//        style.myLocationIcon(BitmapDescriptorFactory.fromResource(R.drawable.location_marker));
         //设置定位范围的外圈大小
         style.strokeWidth(1.0f);
         //设置定位范围的圆的外圈颜色
@@ -137,7 +137,7 @@ public class GaodeLbsLayer implements ILbsLayer, AMapLocationListener, LocationS
 
     @Override
     public void addOrUpdateMarker(LocationInfo locationInfo, Bitmap bitmap) {
-        Marker storedMarker = mMarkerMap.get(locationInfo.getId());
+        Marker storedMarker = mMarkerMap.get(locationInfo.getKey());
         LatLng latLng = new LatLng(locationInfo.getLatitude(), locationInfo.getLongitude());
 
         if (storedMarker != null){
@@ -146,12 +146,12 @@ public class GaodeLbsLayer implements ILbsLayer, AMapLocationListener, LocationS
             storedMarker.setRotateAngle(locationInfo.getRotation());
         } else {
             //如果不存在，则创建
-            Bitmap bMap = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.navi_map_gps_locked);
-            BitmapDescriptor des = BitmapDescriptorFactory.fromBitmap(bMap);
+//            Bitmap bMap = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.navi_map_gps_locked);
+//            BitmapDescriptor des = BitmapDescriptorFactory.fromBitmap(bMap);
 
             MarkerOptions options = new MarkerOptions();
             //设置marker的图片
-            options.icon(des );
+            options.icon(BitmapDescriptorFactory.fromBitmap(bitmap));
             //设置marker的锚点
             options.anchor(0.5f, 0.5f);
             //设置marker的位置
@@ -159,10 +159,10 @@ public class GaodeLbsLayer implements ILbsLayer, AMapLocationListener, LocationS
             Marker marker = mAMap.addMarker(options);
 
             marker.setRotateAngle(rotation);
-            mMarkerMap.put(locationInfo.getId(), marker);
+            mMarkerMap.put(locationInfo.getKey(), marker);
 
             //如果是当前位置
-            if (locationInfo.getId() == MY_LOCATION_ID){
+            if (locationInfo.getKey().equals(MY_LOCATION_ID)){
                 mSensorEventHelper.setCurrentMarker(marker);
             }
 
@@ -219,7 +219,7 @@ public class GaodeLbsLayer implements ILbsLayer, AMapLocationListener, LocationS
 
                 LocationInfo locationInfo
                         = new LocationInfo(aMapLocation.getLatitude(), aMapLocation.getLongitude());
-                locationInfo.setId(MY_LOCATION_ID);
+                locationInfo.setKey(MY_LOCATION_ID);
                 locationInfo.setName(aMapLocation.getPoiName());
 
                 //是否第一次定位

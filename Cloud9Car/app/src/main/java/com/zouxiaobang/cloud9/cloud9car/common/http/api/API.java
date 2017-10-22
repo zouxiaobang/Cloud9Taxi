@@ -19,6 +19,11 @@ public class API {
     public static final String REGISTER = "/f34e28da5816433d/register";
     public static final String LOGIN = "/f34e28da5816433d/auth";
     public static final String LOGIN_BY_TOKEN = "/f34e28da5816433d/login";
+    /**
+     * /f34e28da5816433d/getNearDrivers?latitude=${latitude}&longitude=${longitude}
+     */
+    public static final String GET_NEAR_DRIVERS
+            = "/f34e28da5816433d/getNearDrivers?latitude=${latitude}&longitude=${longitude}";
 
 
     /**

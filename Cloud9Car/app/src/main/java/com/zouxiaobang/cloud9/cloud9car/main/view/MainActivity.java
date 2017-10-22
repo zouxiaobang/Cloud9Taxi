@@ -26,6 +26,7 @@ import com.zouxiaobang.cloud9.cloud9car.common.lbs.ILbsLayer;
 import com.zouxiaobang.cloud9.cloud9car.common.lbs.LocationInfo;
 import com.zouxiaobang.cloud9.cloud9car.common.storage.SharedPreferenceDao;
 import com.zouxiaobang.cloud9.cloud9car.common.utils.SensorEventHelper;
+import com.zouxiaobang.cloud9.cloud9car.main.model.MainManagerImpl;
 import com.zouxiaobang.cloud9.cloud9car.main.presenter.IMainPresenter;
 import com.zouxiaobang.cloud9.cloud9car.main.presenter.MainPresenterImpl;
 
@@ -41,6 +42,7 @@ import java.util.List;
  * 2、设置小蓝点
  * 3、添加相机功能：让地图显示到的区域范围更小
  * 4、添加传感器，实时更新方向
+ * 5、获取附近司机
  */
 public class MainActivity extends Activity implements IMainView{
     private static final int PERMISSION_REQUEST = 100;
@@ -54,6 +56,7 @@ public class MainActivity extends Activity implements IMainView{
     private boolean isPermission = false;
     private IMainPresenter mPresenter;
     private boolean isFirstFix = true;
+    private Bitmap mDriverBitmap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,7 +65,8 @@ public class MainActivity extends Activity implements IMainView{
 
         mPresenter = new MainPresenterImpl(this, new AccountManagerImpl(new OkHttpClientImpl(),
                 new SharedPreferenceDao(C9Application.getInstance(),
-                        SharedPreferenceDao.FILE_ACCOUNT)));
+                        SharedPreferenceDao.FILE_ACCOUNT)),
+                new MainManagerImpl(new OkHttpClientImpl()));
 
         RxBus.getInstance().register(mPresenter);
 
@@ -90,7 +94,11 @@ public class MainActivity extends Activity implements IMainView{
             @Override
             public void onLocation(LocationInfo locationInfo) {
                 // 首次定位，添加当前位置的标记
-                mLbsLayer.addOrUpdateMarker(locationInfo, BitmapFactory.decodeResource(getResources(), R.drawable.navi_map_gps_locked));
+                mLbsLayer.addOrUpdateMarker(locationInfo,
+                        BitmapFactory.decodeResource(getResources(),
+                                R.drawable.navi_map_gps_locked));
+                //获取附近司机
+                getNearDrivers(locationInfo.getLatitude(), locationInfo.getLongitude());
             }
         });
 
@@ -98,6 +106,15 @@ public class MainActivity extends Activity implements IMainView{
         ViewGroup viewGroup = (ViewGroup) findViewById(R.id.main_activity);
         viewGroup.addView(mLbsLayer.getMapView());
 
+    }
+
+    /**
+     * 获取附近司机
+     * @param latitude
+     * @param longitude
+     */
+    private void getNearDrivers(double latitude, double longitude) {
+        mPresenter.fetchNearDrivers(latitude, longitude);
     }
 
     @Override
@@ -219,5 +236,20 @@ public class MainActivity extends Activity implements IMainView{
     @Override
     public void showServerError() {
         Toast.makeText(MainActivity.this, getString(R.string.error_server), Toast.LENGTH_SHORT).show();
+    }
+
+    /**
+     * 获取附近司机
+     * @param data
+     */
+    @Override
+    public void showNears(List<LocationInfo> data) {
+        if (mDriverBitmap == null || mDriverBitmap.isRecycled()){
+            mDriverBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.car);
+        }
+
+        for (LocationInfo info: data){
+            mLbsLayer.addOrUpdateMarker(info, mDriverBitmap);
+        }
     }
 }
