@@ -36,4 +36,11 @@ public interface IMainView {
       * @param locationInfo
       */
     void showLocationChange(LocationInfo locationInfo);
+
+
+    /**
+     * 呼叫司机成功或失败
+     * @param show
+     */
+    void showCallDriverTip(boolean show);
 }

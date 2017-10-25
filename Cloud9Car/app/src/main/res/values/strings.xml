@@ -41,7 +41,7 @@
     <string name="pay_info">行程结束，感谢你使用滴滴，你需支付¥ %1$.2f 。\n 司机：%2$s 车牌:%3$s</string>
     <string name="cancel_fail">取消失败</string>
     <string name="pay_suc">支付成功</string>
-    <string name="show_call_suc">已有司机收到请求</string>
+    <string name="show_call_suc">订单发送成功，请等待司机接单</string>
     <string name="show_call_fail">呼叫失败，稍后再试</string>
     <string name="driver_arrive_pure">司机已到达</string>
     <string name="canceling">订单取消中...</string>
@@ -51,8 +51,7 @@
     <string name="driver">司机：</string>
     <string name="loading">加载中...</string>
     <string name="price">¥ %1$.2f</string>
-
-
+    <string name="login_in_main">请先进行登录</string>
 
 
 </resources>

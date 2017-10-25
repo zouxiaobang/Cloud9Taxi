@@ -2,8 +2,12 @@ package com.dalimao.mytaxi.cloud9car.main.model;
 
 import android.util.Log;
 
+import com.dalimao.mytaxi.cloud9car.C9Application;
+import com.dalimao.mytaxi.cloud9car.account.model.response.Account;
 import com.dalimao.mytaxi.cloud9car.common.databus.RxBus;
 import com.dalimao.mytaxi.cloud9car.common.lbs.LocationInfo;
+import com.dalimao.mytaxi.cloud9car.common.storage.SharedPreferenceDao;
+import com.dalimao.mytaxi.cloud9car.main.model.response.OptStateResponse;
 import com.google.gson.Gson;
 import com.dalimao.mytaxi.cloud9car.common.http.IHttpClient;
 import com.dalimao.mytaxi.cloud9car.common.http.IRequest;
@@ -76,6 +80,38 @@ public class MainManagerImpl implements IMainManager {
                     Log.d(TAG, "位置上报失败");
                 }
                 return null;
+            }
+        });
+    }
+
+    @Override
+    public void callDriver(final String pushKey, final float cost, final LocationInfo startLocation, final LocationInfo endLocation) {
+        RxBus.getInstance().chainProcess(new Func1() {
+            @Override
+            public Object call(Object o) {
+                //获取uid和phone
+                SharedPreferenceDao dao = new SharedPreferenceDao(C9Application.getInstance(),
+                        SharedPreferenceDao.FILE_ACCOUNT);
+                Account account = (Account) dao.get(SharedPreferenceDao.KEY_ACCOUNT, Account.class);
+                String uid = account.getUid();
+                String phone = account.getAccount();
+
+                IRequest request = new BaseRequest(API.Config.getDomain()
+                        + API.CALL_DRIVER);
+                request.setBody("uid", uid);
+                request.setBody("phone", phone);
+                request.setBody("cost", new Float(cost).toString());
+                request.setBody("key", pushKey);
+                request.setBody("startLatitude", new Double(startLocation.getLatitude()).toString());
+                request.setBody("startLongitude", new Double(startLocation.getLongitude()).toString());
+                request.setBody("endLatitude", new Double(endLocation.getLatitude()).toString());
+                request.setBody("endLongitude", new Double(endLocation.getLongitude()).toString());
+
+                IRespone response = mClient.post(request, false);
+                OptStateResponse optStateResponse = new OptStateResponse();
+                optStateResponse.setCode(response.getCode());
+                optStateResponse.setState(OptStateResponse.OPT_STATE_CREATED);
+                return optStateResponse;
             }
         });
     }

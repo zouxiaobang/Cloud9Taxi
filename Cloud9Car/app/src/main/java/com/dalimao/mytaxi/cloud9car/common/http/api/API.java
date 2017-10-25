@@ -26,7 +26,8 @@ public class API {
             = "/f34e28da5816433d/getNearDrivers?latitude=${latitude}&longitude=${longitude}";
     //上报位置
     public static final String UPLOAD_LOCATION = "/f34e28da5816433d/updateUserLocation";
-
+    //呼叫司机
+    public static final String CALL_DRIVER = "/f34e28da5816433d/callDriver";
 
     /**
      * 配置域名信息

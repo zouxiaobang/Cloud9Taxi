@@ -23,4 +23,13 @@ public interface IMainManager {
      */
 
     void updateLocationToServer(LocationInfo locationInfo);
+
+    /**
+     * 呼叫司机
+     * @param pushKey
+     * @param cost
+     * @param startLocation
+     * @param endLocation
+     */
+    void callDriver(String pushKey, float cost, LocationInfo startLocation, LocationInfo endLocation);
 }

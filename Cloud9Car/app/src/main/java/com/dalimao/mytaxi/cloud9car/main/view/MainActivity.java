@@ -17,6 +17,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
+import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -74,6 +77,19 @@ public class MainActivity extends Activity implements IMainView {
      * 标题栏显示当前城市
      */
     private TextView mCity;
+    private LinearLayout mSelectArea;
+    private LinearLayout mOptLayout;
+    private TextView mOptState;
+    private ProgressBar mCalling;
+    private Button mBtnCancel;
+    private Button mBtnCall;
+    private Button mBtnPay;
+
+
+    /**
+     * 是否已经登录
+     */
+    private boolean isLogin;
     /**
      * 记录起点和终点的位置
      */
@@ -88,6 +104,7 @@ public class MainActivity extends Activity implements IMainView {
     private String mPushKey;
     private Bitmap mStartBit;
     private Bitmap mEndBit;
+    private float mCost;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -167,6 +184,15 @@ public class MainActivity extends Activity implements IMainView {
         mStartEdit = (AutoCompleteTextView) findViewById(R.id.start);
         mEndEdit = (AutoCompleteTextView) findViewById(R.id.end);
         mCity = (TextView) findViewById(R.id.city);
+        mSelectArea = (LinearLayout) findViewById(R.id.select_area);
+        mOptLayout = (LinearLayout) findViewById(R.id.opt_layout);
+        mOptState = (TextView) findViewById(R.id.opt_state);
+        mCalling = (ProgressBar) findViewById(R.id.progress);
+        mBtnCall = (Button) findViewById(R.id.btn_call);
+        mBtnCancel = (Button) findViewById(R.id.btn_cancel);
+        mBtnPay = (Button) findViewById(R.id.btn_pay);
+
+
         mEndEdit.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
@@ -195,6 +221,50 @@ public class MainActivity extends Activity implements IMainView {
                 });
             }
         });
+        mSelectArea.setVisibility(View.VISIBLE);
+        mOptLayout.setVisibility(View.GONE);
+        mBtnPay.setVisibility(View.GONE);
+
+        mBtnCall.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //呼叫司机
+                callDriver();
+            }
+        });
+        mBtnCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // TODO: 10/25/17 取消地图路径的绘制
+            }
+        });
+        mBtnPay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // TODO: 10/25/17 支付功能
+            }
+        });
+    }
+
+    /**
+     * 呼叫司机
+     */
+    private void callDriver() {
+        //判断是否登录
+        if (isLogin){
+            //处理UI中按钮是否可点击
+            mOptState.setText(getString(R.string.calling_driver));
+            mCalling.setVisibility(View.VISIBLE);
+            mBtnCancel.setEnabled(true);
+            mBtnCall.setEnabled(false);
+
+            //通知Presenter层去调用呼叫司机的方法
+            mPresenter.requestCallDriver(mPushKey, mCost, mStartLocation, mEndLocation);
+        } else {
+            //直接通过Token进行登录
+            mPresenter.requestLoginByToken();
+            Toast.makeText(this, getString(R.string.login_in_main), Toast.LENGTH_SHORT).show();
+        }
     }
 
     /**
@@ -246,12 +316,32 @@ public class MainActivity extends Activity implements IMainView {
                     @Override
                     public void onCompleted(RouteInfo routeInfo) {
                         Log.d(TAG, "onCompleted: routeInfo { " + routeInfo + "}");
-                        // TODO: 10/25/17 相机的移动 -- 缩放地图
+                        //显示呼叫司机操作区
+                        showOptArea();
+                        //获取Route中的信息
+                        mCost = routeInfo.getTaxiCost();
+                        String infoString = getString(R.string.route_info);
+                        infoString = String.format(infoString,
+                                new Float(routeInfo.getDistance()).intValue(),
+                                mCost,
+                                routeInfo.getDuration());
+                        mOptState.setText(infoString);
+
+                        //  10/25/17 相机的移动 -- 缩放地图
                         mLbsLayer.moveCamera(mStartLocation, mEndLocation);
 
                     }
                 });
 
+    }
+
+    /**
+     * 显示操作区
+     */
+    private void showOptArea() {
+        mSelectArea.setVisibility(View.GONE);
+        mOptLayout.setVisibility(View.VISIBLE);
+        mCalling.setVisibility(View.GONE);
     }
 
     /**
@@ -403,6 +493,7 @@ public class MainActivity extends Activity implements IMainView {
 
     @Override
     public void showLoginSuccess() {
+        isLogin = true;
         Toast.makeText(MainActivity.this, getString(R.string.login_suc), Toast.LENGTH_SHORT).show();
     }
 
@@ -440,5 +531,20 @@ public class MainActivity extends Activity implements IMainView {
             mDriverBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.car);
         }
         mLbsLayer.addOrUpdateMarker(locationInfo, mDriverBitmap);
+    }
+
+    /**
+     * 显示呼叫司机是否成功
+     * @param show
+     */
+    @Override
+    public void showCallDriverTip(boolean show) {
+        mCalling.setVisibility(View.GONE);
+        if (show){
+            mOptState.setText(getString(R.string.show_call_suc));
+        } else {
+            mOptState.setText(getString(R.string.show_call_fail));
+            mBtnCall.setEnabled(true);
+        }
     }
 }
