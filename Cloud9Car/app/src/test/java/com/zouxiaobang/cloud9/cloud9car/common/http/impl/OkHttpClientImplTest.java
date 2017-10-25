@@ -1,14 +1,14 @@
 package com.zouxiaobang.cloud9.cloud9car.common.http.impl;
 
-import com.zouxiaobang.cloud9.cloud9car.common.http.IHttpClient;
-import com.zouxiaobang.cloud9.cloud9car.common.http.IRequest;
-import com.zouxiaobang.cloud9.cloud9car.common.http.IRespone;
-import com.zouxiaobang.cloud9.cloud9car.common.http.api.API;
+import com.dalimao.mytaxi.cloud9car.common.http.IHttpClient;
+import com.dalimao.mytaxi.cloud9car.common.http.IRequest;
+import com.dalimao.mytaxi.cloud9car.common.http.IRespone;
+import com.dalimao.mytaxi.cloud9car.common.http.api.API;
+import com.dalimao.mytaxi.cloud9car.common.http.impl.BaseRequest;
+import com.dalimao.mytaxi.cloud9car.common.http.impl.OkHttpClientImpl;
 
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 /**
  * Created by zouxiaobang on 10/15/17.
