@@ -54,6 +54,25 @@ public interface ILbsLayer {
      */
     void poiSearch(String key, OnSearchedListener listener);
 
+    /**
+     * 清除地图上所有的标记
+     */
+    void clearAllMarker();
+
+    void driveRoute(LocationInfo start, LocationInfo end, int color, RouteCompletedListener listener);
+
+    /**
+     * 移动相机，以缩放地图
+     * @param startLocation
+     * @param endLocation
+     */
+    void moveCamera(LocationInfo startLocation, LocationInfo endLocation);
+
+
+    interface RouteCompletedListener{
+        void onCompleted(RouteInfo routeInfo);
+    }
+
     interface CommonLocationChangedListener{
         /**
          * 位置发生变化时调用

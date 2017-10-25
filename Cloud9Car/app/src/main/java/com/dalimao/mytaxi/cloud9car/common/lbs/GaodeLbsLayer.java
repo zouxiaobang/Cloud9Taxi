@@ -20,13 +20,23 @@ import com.amap.api.maps2d.MapView;
 import com.amap.api.maps2d.model.BitmapDescriptorFactory;
 import com.amap.api.maps2d.model.CameraPosition;
 import com.amap.api.maps2d.model.LatLng;
+import com.amap.api.maps2d.model.LatLngBounds;
 import com.amap.api.maps2d.model.Marker;
 import com.amap.api.maps2d.model.MarkerOptions;
 import com.amap.api.maps2d.model.MyLocationStyle;
+import com.amap.api.maps2d.model.PolylineOptions;
 import com.amap.api.services.core.AMapException;
+import com.amap.api.services.core.LatLonPoint;
 import com.amap.api.services.help.Inputtips;
 import com.amap.api.services.help.InputtipsQuery;
 import com.amap.api.services.help.Tip;
+import com.amap.api.services.route.BusRouteResult;
+import com.amap.api.services.route.DrivePath;
+import com.amap.api.services.route.DriveRouteResult;
+import com.amap.api.services.route.DriveStep;
+import com.amap.api.services.route.RideRouteResult;
+import com.amap.api.services.route.RouteSearch;
+import com.amap.api.services.route.WalkRouteResult;
 import com.dalimao.mytaxi.cloud9car.common.utils.SensorEventHelper;
 
 import java.util.ArrayList;
@@ -91,6 +101,10 @@ public class GaodeLbsLayer implements ILbsLayer, AMapLocationListener, LocationS
      * 当前城市
      */
     private String mCity;
+    /**
+     * 路径搜索类
+     */
+    private RouteSearch mRouteSearch;
 
     private CommonLocationChangedListener mCommonLocationChangedListener;
 
@@ -254,6 +268,96 @@ public class GaodeLbsLayer implements ILbsLayer, AMapLocationListener, LocationS
         }
     }
 
+    @Override
+    public void clearAllMarker() {
+        mAMap.clear();
+        mMarkerMap.clear();
+    }
+
+    @Override
+    public void driveRoute(final LocationInfo start, LocationInfo end, final int color, final RouteCompletedListener listener) {
+        //封装起终点的位置信息
+        final LatLonPoint startPoint = new LatLonPoint(start.getLatitude(), start.getLongitude());
+        LatLonPoint endPoint = new LatLonPoint(end.getLatitude(), end.getLongitude());
+
+        //路径搜索类
+        RouteSearch.FromAndTo fromAndTo = new RouteSearch.FromAndTo(startPoint, endPoint);
+        //搜索参数
+        RouteSearch.DriveRouteQuery option = new RouteSearch.DriveRouteQuery(fromAndTo,
+                RouteSearch.DrivingDefault,
+                null,
+                null,
+                "");
+        if (mRouteSearch == null){
+            mRouteSearch = new RouteSearch(mContext);
+        }
+        //执行搜索
+        mRouteSearch.calculateDriveRouteAsyn(option);
+        mRouteSearch.setRouteSearchListener(new RouteSearch.OnRouteSearchListener() {
+            @Override
+            public void onBusRouteSearched(BusRouteResult busRouteResult, int i) {
+
+            }
+
+            @Override
+            public void onDriveRouteSearched(DriveRouteResult driveRouteResult, int i) {
+                //获取第一条路径
+                DrivePath path = driveRouteResult.getPaths().get(0);
+                //获取这条路径上的所有点
+                LatLonPoint startPos = driveRouteResult.getStartPos();
+                LatLonPoint endPos = driveRouteResult.getTargetPos();
+                List<DriveStep> steps = path.getSteps();
+
+                //使用Polyline来绘制路径
+                PolylineOptions polylineOptions = new PolylineOptions();
+                polylineOptions.color(color);
+                //添加起点
+                polylineOptions.add(new LatLng(startPos.getLatitude(), startPos.getLongitude()));
+                //添加中间点
+                for (DriveStep step: steps){
+                    List<LatLonPoint> polyline = step.getPolyline();
+                    for (LatLonPoint point: polyline){
+                        LatLng latLng = new LatLng(point.getLatitude(), point.getLongitude());
+                        polylineOptions.add(latLng);
+                    }
+                }
+                //添加终点
+                polylineOptions.add(new LatLng(endPos.getLatitude(), endPos.getLongitude()));
+
+                //执行绘制
+                mAMap.addPolyline(polylineOptions);
+
+                //处理回调
+                if (listener != null){
+                    RouteInfo info = new RouteInfo();
+                    info.setTaxiCost(driveRouteResult.getTaxiCost());
+                    info.setDuration(10 + new Long(path.getDuration() / 1000 * 60).intValue());
+                    info.setDistance(path.getDistance() / 1000);
+                    listener.onCompleted(info);
+                }
+            }
+
+            @Override
+            public void onWalkRouteSearched(WalkRouteResult walkRouteResult, int i) {
+
+            }
+
+            @Override
+            public void onRideRouteSearched(RideRouteResult rideRouteResult, int i) {
+
+            }
+        });
+    }
+
+    @Override
+    public void moveCamera(LocationInfo startLocation, LocationInfo endLocation) {
+        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+        builder.include(new LatLng(startLocation.getLatitude(), startLocation.getLongitude()));
+        builder.include(new LatLng(endLocation.getLatitude(), endLocation.getLongitude()));
+        LatLngBounds bounds = builder.build();
+        mAMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100));
+    }
+
 
     @Override
     public void onLocationChanged(AMapLocation aMapLocation) {
@@ -270,7 +374,6 @@ public class GaodeLbsLayer implements ILbsLayer, AMapLocationListener, LocationS
                         = new LocationInfo(aMapLocation.getLatitude(), aMapLocation.getLongitude());
                 locationInfo.setKey(MY_LOCATION_ID);
                 locationInfo.setName(aMapLocation.getPoiName());
-                Log.i("poiname", "name = " + aMapLocation.getPoiName());
 
                 //是否第一次定位
                 if (isFirstFix){

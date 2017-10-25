@@ -5,7 +5,6 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.util.Log;
 import android.view.Display;
 import android.view.Surface;
 import android.view.WindowManager;
@@ -34,7 +33,6 @@ public class SensorEventHelper implements SensorEventListener {
     public void registerSensorListener() {
         mSensorManager.registerListener(this, mSensor,
                 SensorManager.SENSOR_DELAY_NORMAL);
-        Log.d(TAG, "registerSensorListener");
     }
 
     public void unRegisterSensorListener() {
@@ -48,12 +46,10 @@ public class SensorEventHelper implements SensorEventListener {
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
         // TODO Auto-generated method stub
-        Log.i(TAG, "onAccuracyChanged: accuracy =  " + accuracy);
     }
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        Log.d(TAG, "onSensorChanged");
         if (System.currentTimeMillis() - lastTime < TIME_SENSOR) {
             return;
         }
@@ -75,7 +71,6 @@ public class SensorEventHelper implements SensorEventListener {
                     mMarker.setRotateAngle(360 - mAngle);
                 }
                 lastTime = System.currentTimeMillis();
-                Log.i(TAG, "onSensorChanged: x = " + x);
             }
         }
 

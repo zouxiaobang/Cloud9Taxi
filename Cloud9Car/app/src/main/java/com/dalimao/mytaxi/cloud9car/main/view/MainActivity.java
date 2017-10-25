@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -28,6 +29,7 @@ import com.dalimao.mytaxi.cloud9car.common.databus.RxBus;
 import com.dalimao.mytaxi.cloud9car.common.http.impl.OkHttpClientImpl;
 import com.dalimao.mytaxi.cloud9car.common.lbs.GaodeLbsLayer;
 import com.dalimao.mytaxi.cloud9car.common.lbs.LocationInfo;
+import com.dalimao.mytaxi.cloud9car.common.lbs.RouteInfo;
 import com.dalimao.mytaxi.cloud9car.common.utils.DevUtil;
 import com.dalimao.mytaxi.cloud9car.main.model.MainManagerImpl;
 import com.dalimao.mytaxi.cloud9car.main.presenter.MainPresenterImpl;
@@ -84,6 +86,8 @@ public class MainActivity extends Activity implements IMainView {
     private Bitmap mDriverBitmap;
 
     private String mPushKey;
+    private Bitmap mStartBit;
+    private Bitmap mEndBit;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -125,7 +129,6 @@ public class MainActivity extends Activity implements IMainView {
                                 R.drawable.navi_map_gps_locked));
                 //设置起点
                 mStartLocation = locationInfo;
-                Log.d(TAG, "onLocation: city = " + mLbsLayer.getCity() + "  : name = " + locationInfo.getName() );
                 //设置标题
                 mCity.setText(mLbsLayer.getCity());
                 //设置起点具体名称
@@ -217,7 +220,8 @@ public class MainActivity extends Activity implements IMainView {
                 DevUtil.closeInputMethod(MainActivity.this);
                 //记录终点
                 mEndLocation = results.get(position);
-                // TODO: 10/24/17 绘制路径
+                mEndLocation.setKey("0");
+                //  10/24/17 绘制路径
                 showRoute(mStartLocation, mEndLocation);
             }
         });
@@ -225,12 +229,51 @@ public class MainActivity extends Activity implements IMainView {
     }
 
     /**
-     * TODO: 绘制起点和终点路径
+     *  绘制起点和终点路径
      * @param startLocation
      * @param endLocation
      */
     private void showRoute(LocationInfo startLocation, LocationInfo endLocation) {
+        //清除所有的标记点
+        mLbsLayer.clearAllMarker();
+        //添加两个标记点：起点和终点
+        addStartMarker();
+        addEndMarker();
+        //绘制两点间的行车路径
+        mLbsLayer.driveRoute(startLocation, endLocation,
+                Color.RED,
+                new ILbsLayer.RouteCompletedListener(){
+                    @Override
+                    public void onCompleted(RouteInfo routeInfo) {
+                        Log.d(TAG, "onCompleted: routeInfo { " + routeInfo + "}");
+                        // TODO: 10/25/17 相机的移动 -- 缩放地图
+                        mLbsLayer.moveCamera(mStartLocation, mEndLocation);
 
+                    }
+                });
+
+    }
+
+    /**
+     *  添加终点标记
+     */
+    private void addEndMarker() {
+        if (mEndBit == null || mEndBit.isRecycled()) {
+            mEndBit = BitmapFactory.decodeResource(getResources(),
+                    R.drawable.end);
+        }
+        mLbsLayer.addOrUpdateMarker(mEndLocation, mEndBit);
+    }
+
+    /**
+     *  添加起点标记
+     */
+    private void addStartMarker() {
+        if (mStartBit == null || mStartBit.isRecycled()) {
+            mStartBit = BitmapFactory.decodeResource(getResources(),
+                    R.drawable.start);
+        }
+        mLbsLayer.addOrUpdateMarker(mStartLocation, mStartBit);
     }
 
     /**
