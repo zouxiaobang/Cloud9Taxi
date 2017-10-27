@@ -44,6 +44,7 @@ import com.dalimao.mytaxi.cloud9car.main.presenter.IMainPresenter;
 import java.util.ArrayList;
 import java.util.List;
 
+import B.V;
 import cn.bmob.push.BmobPush;
 import cn.bmob.v3.Bmob;
 import cn.bmob.v3.BmobInstallation;
@@ -105,6 +106,7 @@ public class MainActivity extends Activity implements IMainView {
     private Bitmap mStartBit;
     private Bitmap mEndBit;
     private float mCost;
+    private Bitmap mLocationBit;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -141,9 +143,7 @@ public class MainActivity extends Activity implements IMainView {
             @Override
             public void onLocation(LocationInfo locationInfo) {
                 // 首次定位，添加当前位置的标记
-                mLbsLayer.addOrUpdateMarker(locationInfo,
-                        BitmapFactory.decodeResource(getResources(),
-                                R.drawable.navi_map_gps_locked));
+                addLocationMarker(locationInfo);
                 //设置起点
                 mStartLocation = locationInfo;
                 //设置标题
@@ -171,10 +171,19 @@ public class MainActivity extends Activity implements IMainView {
         BmobInstallation installation = BmobInstallation.getCurrentInstallation(this);
         installation.save();
         mPushKey = installation.getInstallationId();
+        Log.d(TAG, "onCreate: pushkey = " + mPushKey);
         // 启动推送服务
         BmobPush.startWork(this);
 
         initView();
+    }
+
+    public void addLocationMarker(LocationInfo locationInfo) {
+        if (mLocationBit == null || mLocationBit.isRecycled()){
+            mLocationBit = BitmapFactory.decodeResource(getResources(),
+                    R.drawable.navi_map_gps_locked);
+        }
+        mLbsLayer.addOrUpdateMarker(locationInfo,mLocationBit);
     }
 
     /**
@@ -235,7 +244,8 @@ public class MainActivity extends Activity implements IMainView {
         mBtnCancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // TODO: 10/25/17 取消地图路径的绘制
+                //  10/25/17 取消地图路径的绘制
+                cancel();
             }
         });
         mBtnPay.setOnClickListener(new View.OnClickListener() {
@@ -244,6 +254,63 @@ public class MainActivity extends Activity implements IMainView {
                 // TODO: 10/25/17 支付功能
             }
         });
+    }
+
+    /**
+     * 取消订单
+     */
+    private void cancel() {
+        mBtnCancel.setEnabled(false);
+        if (isCalled()){
+            //设置正在取消的UI
+            showCanceling();
+            //交给Presenter去处理逻辑
+            mPresenter.requestCancel();
+        } else {
+            //直接恢复UI
+            restoreUI();
+        }
+    }
+
+    /**
+     * 显示正在取消的UI
+     */
+    private void showCanceling() {
+        mCalling.setVisibility(View.VISIBLE);
+        mOptState.setText(getString(R.string.canceling));
+    }
+
+    /**
+     * TODO: 恢复UI
+     */
+    private void restoreUI() {
+        mBtnCancel.setEnabled(true );
+
+        //清除所有的标记
+        mLbsLayer.clearAllMarker();
+        //添加当前标记
+        addLocationMarker(mStartLocation);
+        //恢复相机视角
+        mLbsLayer.moveCameraToPoint(mStartLocation);
+        //获取附近司机
+        getNearDrivers(mStartLocation.getLatitude(), mStartLocation.getLongitude());
+        //隐藏操作区
+        mOptLayout.setVisibility(View.GONE);
+        mBtnCall.setEnabled(true);
+        mBtnCancel.setEnabled(true);
+        //显示定位输入区
+        mSelectArea.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * 是否已经发送过订单
+     * @return
+     */
+    private boolean isCalled() {
+        if (mBtnCall.isEnabled()){
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -258,6 +325,8 @@ public class MainActivity extends Activity implements IMainView {
             mBtnCancel.setEnabled(true);
             mBtnCall.setEnabled(false);
 
+            Log.d(TAG, "callDriver: start = " + mStartLocation.getName());
+            Log.d(TAG, "callDriver: end = " + mEndLocation.getName());
             //通知Presenter层去调用呼叫司机的方法
             mPresenter.requestCallDriver(mPushKey, mCost, mStartLocation, mEndLocation);
         } else {
@@ -546,5 +615,17 @@ public class MainActivity extends Activity implements IMainView {
             mOptState.setText(getString(R.string.show_call_fail));
             mBtnCall.setEnabled(true);
         }
+    }
+
+    @Override
+    public void showCancelSuc() {
+        Toast.makeText(this, getString(R.string.order_cancel_suc), Toast.LENGTH_SHORT).show();
+        restoreUI();
+    }
+
+    @Override
+    public void showCancelFail() {
+        Toast.makeText(this, getString(R.string.order_cancel_error), Toast.LENGTH_SHORT).show();
+        mBtnCancel.setEnabled(true);
     }
 }

@@ -358,6 +358,14 @@ public class GaodeLbsLayer implements ILbsLayer, AMapLocationListener, LocationS
         mAMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100));
     }
 
+    @Override
+    public void moveCameraToPoint(LocationInfo startLocation) {
+        LatLng latLng = new LatLng(startLocation.getLatitude(), startLocation.getLongitude());
+        CameraUpdate update = CameraUpdateFactory.newCameraPosition(
+                new CameraPosition(latLng, 18, 30, 30));
+        mAMap.moveCamera(update);
+    }
+
 
     @Override
     public void onLocationChanged(AMapLocation aMapLocation) {
@@ -380,10 +388,7 @@ public class GaodeLbsLayer implements ILbsLayer, AMapLocationListener, LocationS
                     isFirstFix = false;
 
                     //设置Camera，让显示范围变小
-                    LatLng latLng = new LatLng(aMapLocation.getLatitude(), aMapLocation.getLongitude());
-                    CameraUpdate update = CameraUpdateFactory.newCameraPosition(
-                            new CameraPosition(latLng, 18, 30, 30));
-                    mAMap.moveCamera(update);
+                    moveCameraToPoint(locationInfo);
 
                     if (mCommonLocationChangedListener != null){
                         mCommonLocationChangedListener.onLocation(locationInfo);

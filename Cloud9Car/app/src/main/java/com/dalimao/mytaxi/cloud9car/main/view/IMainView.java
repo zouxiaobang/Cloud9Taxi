@@ -32,7 +32,7 @@ public interface IMainView {
      */
     void showNears(List<LocationInfo> data);
 
-    /* 显示位置变化
+    /* 显示司机位置变化
       * @param locationInfo
       */
     void showLocationChange(LocationInfo locationInfo);
@@ -43,4 +43,14 @@ public interface IMainView {
      * @param show
      */
     void showCallDriverTip(boolean show);
+
+    /**
+     * 显示取消订单成功
+     */
+    void showCancelSuc();
+
+    /**
+     * 显示取消订单失败
+     */
+    void showCancelFail();
 }

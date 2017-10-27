@@ -68,6 +68,12 @@ public interface ILbsLayer {
      */
     void moveCamera(LocationInfo startLocation, LocationInfo endLocation);
 
+    /**
+     * 设置相机视角
+     * @param startLocation
+     */
+    void moveCameraToPoint(LocationInfo startLocation);
+
 
     interface RouteCompletedListener{
         void onCompleted(RouteInfo routeInfo);

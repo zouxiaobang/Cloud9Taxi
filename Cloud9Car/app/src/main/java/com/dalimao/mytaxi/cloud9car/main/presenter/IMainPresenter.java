@@ -35,4 +35,9 @@ public interface IMainPresenter {
      * @param endLocation
      */
     void requestCallDriver(String pushKey, float cost, LocationInfo startLocation, LocationInfo endLocation);
+
+    /**
+     * 请求取消订单
+     */
+    void requestCancel();
 }
