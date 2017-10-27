@@ -10,6 +10,11 @@ import com.dalimao.mytaxi.cloud9car.main.model.bean.Order;
 public class OptStateResponse extends BaseBizResponse {
     public static final int OPT_STATE_CREATED = 0;
     public static final int OPT_STATE_CANCEL = -1;
+    public static final int OPT_STATE_ACCESS = 1;
+    public static final int OPT_STATE_ARRIVE_START = 2;
+    public static final int OPT_STATE_START_DRIVE = 3;
+    public static final int OPT_STATE_ARRIVE_END = 4;
+
 
     private int state;
     private Order data;

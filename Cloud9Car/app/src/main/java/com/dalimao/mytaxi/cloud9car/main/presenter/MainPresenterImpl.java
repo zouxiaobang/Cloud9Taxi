@@ -72,6 +72,13 @@ public class MainPresenterImpl implements IMainPresenter {
      */
     @RegisterBus
     public void onLocationInfo(LocationInfo locationInfo) {
+        if (mCurrentOrder != null &&
+                (mCurrentOrder.getState() == OptStateResponse.OPT_STATE_ACCESS)){
+            mView.updateDriver2StartRoute(locationInfo, mCurrentOrder);
+        } else if (mCurrentOrder != null &&
+                (mCurrentOrder.getState() == OptStateResponse.OPT_STATE_START_DRIVE)){
+            mView.updateDriver2EndRoute(locationInfo, mCurrentOrder);
+        }
 
         mView.showLocationChange(locationInfo);
     }
@@ -100,20 +107,33 @@ public class MainPresenterImpl implements IMainPresenter {
 
     @RegisterBus
     public void onCallDriverCompleted(OptStateResponse response){
+        Log.d(TAG, "onCallDriverCompleted: state = " + response.getState());
         if (response.getState() == OptStateResponse.OPT_STATE_CREATED){
             if (response.getCode() == BaseBizResponse.STATE_OK){
                 mView.showCallDriverTip(true);
                 mCurrentOrder = response.getData();
-                Log.d(TAG, "onCallDriverCompleted: orderid = " + mCurrentOrder.getOrderId());
             } else {
                 mView.showCallDriverTip(false);
             }
         } else if (response.getState() == OptStateResponse.OPT_STATE_CANCEL){
             if (response.getCode() == BaseBizResponse.STATE_OK){
+                mCurrentOrder = null;
                 mView.showCancelSuc();
             } else {
                 mView.showCancelFail();
             }
+        } else if (response.getState() == OptStateResponse.OPT_STATE_ACCESS){
+            mCurrentOrder = response.getData();
+            mView.showDriverAcceptOrder(mCurrentOrder);
+        } else if (response.getState() == OptStateResponse.OPT_STATE_ARRIVE_START){
+            mCurrentOrder = response.getData();
+            mView.showArriveStart(mCurrentOrder);
+        } else if (response.getState() == OptStateResponse.OPT_STATE_START_DRIVE){
+            mCurrentOrder = response.getData();
+            mView.showStartDrive(mCurrentOrder);
+        } else if (response.getState() == OptStateResponse.OPT_STATE_ARRIVE_END){
+            mCurrentOrder = response.getData();
+            mView.showArriveEnd(mCurrentOrder);
         }
     }
 }

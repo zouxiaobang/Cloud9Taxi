@@ -35,6 +35,7 @@ import com.dalimao.mytaxi.cloud9car.common.lbs.LocationInfo;
 import com.dalimao.mytaxi.cloud9car.common.lbs.RouteInfo;
 import com.dalimao.mytaxi.cloud9car.common.utils.DevUtil;
 import com.dalimao.mytaxi.cloud9car.main.model.MainManagerImpl;
+import com.dalimao.mytaxi.cloud9car.main.model.bean.Order;
 import com.dalimao.mytaxi.cloud9car.main.presenter.MainPresenterImpl;
 import com.dalimao.mytaxi.cloud9car.common.http.api.API;
 import com.dalimao.mytaxi.cloud9car.common.lbs.ILbsLayer;
@@ -627,5 +628,134 @@ public class MainActivity extends Activity implements IMainView {
     public void showCancelFail() {
         Toast.makeText(this, getString(R.string.order_cancel_error), Toast.LENGTH_SHORT).show();
         mBtnCancel.setEnabled(true);
+    }
+
+    /**
+     * 司机接单
+     * @param order
+     */
+    @Override
+    public void showDriverAcceptOrder(final Order order) {
+        //清除所有图标
+        mLbsLayer.clearAllMarker();
+        //显示我的位置
+        addLocationMarker(mStartLocation);
+        //添加司机标记
+        final LocationInfo driverLocation = new LocationInfo(
+                        order.getDriverLatitude(),
+                        order.getDriverLongitude());
+        driverLocation.setKey("0");
+        showLocationChange(driverLocation);
+        //显示司机到我的位置的路径
+        mLbsLayer.driveRoute(driverLocation,
+                mStartLocation,
+                Color.GREEN,
+                new ILbsLayer.RouteCompletedListener() {
+                    @Override
+                    public void onCompleted(RouteInfo routeInfo) {
+                        //相机：地图聚焦
+                        mLbsLayer.moveCamera(driverLocation, mStartLocation);
+                        //显示路径信息
+                        StringBuilder builder = new StringBuilder();
+                        builder.append("司机：")
+                                .append(order.getDriverName())
+                                .append(", 车牌号：")
+                                .append(order.getCarNo())
+                                .append(", 预计 ")
+                                .append(routeInfo.getDuration())
+                                .append("分钟到达。");
+                        mOptState.setText(builder.toString());
+                    }
+                });
+
+    }
+
+    /**
+     * 显示司机接单后到用户附近的路径
+     * @param locationInfo
+     * @param order
+     */
+    @Override
+    public void updateDriver2StartRoute(LocationInfo locationInfo, final Order order) {
+        mLbsLayer.clearAllMarker();
+        addLocationMarker(mStartLocation);
+        showLocationChange(locationInfo);
+        mLbsLayer.driveRoute(locationInfo, mStartLocation, Color.GREEN,
+                new ILbsLayer.RouteCompletedListener() {
+                    @Override
+                    public void onCompleted(RouteInfo routeInfo) {
+                        String str = getString(R.string.accept_info);
+                        String format = String.format(str, order.getDriverName(),
+                                order.getCarNo(),
+                                routeInfo.getDistance(),
+                                routeInfo.getDuration());
+                        mOptState.setText(format);
+                    }
+                });
+        mLbsLayer.moveCamera(locationInfo, mStartLocation);
+    }
+
+    /**
+     * 司机已到达上车点
+     * @param currentOrder
+     */
+    @Override
+    public void showArriveStart(Order currentOrder) {
+        String str = getString(R.string.driver_arrive);
+        String format = String.format(str,
+                currentOrder.getDriverName(),
+                currentOrder.getCarNo());
+        mOptState.setText(format);
+    }
+
+    /**
+     * 开始行程
+     * @param currentOrder
+     */
+    @Override
+    public void showStartDrive(Order currentOrder) {
+        Log.d(TAG, "客户端收到推送内容 showStartDrive: ");
+        LocationInfo locationInfo = new LocationInfo(currentOrder.getDriverLatitude(),
+                currentOrder.getDriverLongitude());
+        updateDriver2EndRoute(locationInfo, currentOrder);
+        mBtnCancel.setEnabled(false);
+        mBtnCall.setEnabled(false);
+    }
+
+    @Override
+    public void updateDriver2EndRoute(LocationInfo locationInfo, final Order currentOrder) {
+        locationInfo.setKey("0");
+        mLbsLayer.clearAllMarker();
+        addEndMarker();
+        showLocationChange(locationInfo);
+        mLbsLayer.driveRoute(locationInfo, mEndLocation, Color.GREEN, new ILbsLayer.RouteCompletedListener() {
+            @Override
+            public void onCompleted(RouteInfo result) {
+
+                String tipsTemp = getString(R.string.driving_info);
+                mOptState.setText(String.format(tipsTemp,
+                        currentOrder.getDriverName(),
+                        currentOrder.getCarNo(),
+                        result.getDistance(),
+                        result.getDuration()));
+            }
+        });
+        // 聚焦
+        mLbsLayer.moveCamera(locationInfo, mEndLocation);
+    }
+
+    @Override
+    public void showArriveEnd(Order order) {
+        String temp = getString(R.string.pay_info);
+        String format = String.format(temp,
+                order.getCost(),
+                order.getDriverName(),
+                order.getCarNo());
+        mOptState.setText(format);
+        mBtnCancel.setEnabled(true);
+        mBtnCall.setEnabled(true);
+        mBtnCall.setVisibility(View.GONE);
+        mBtnCancel.setVisibility(View.GONE);
+        mBtnPay.setVisibility(View.VISIBLE);
     }
 }

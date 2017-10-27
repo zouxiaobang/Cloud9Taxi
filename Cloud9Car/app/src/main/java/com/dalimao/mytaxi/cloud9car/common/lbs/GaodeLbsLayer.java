@@ -270,8 +270,10 @@ public class GaodeLbsLayer implements ILbsLayer, AMapLocationListener, LocationS
 
     @Override
     public void clearAllMarker() {
-        mAMap.clear();
-        mMarkerMap.clear();
+        if (mAMap != null)
+            mAMap.clear();
+        if (mMarkerMap != null)
+            mMarkerMap.clear();
     }
 
     @Override

@@ -10,7 +10,10 @@ import android.content.Intent;
 import android.util.Log;
 
 import com.dalimao.mytaxi.cloud9car.common.databus.RxBus;
+import com.dalimao.mytaxi.cloud9car.common.http.biz.BaseBizResponse;
 import com.dalimao.mytaxi.cloud9car.common.lbs.LocationInfo;
+import com.dalimao.mytaxi.cloud9car.main.model.bean.Order;
+import com.dalimao.mytaxi.cloud9car.main.model.response.OptStateResponse;
 import com.google.gson.Gson;
 
 import org.json.JSONException;
@@ -19,7 +22,14 @@ import org.json.JSONObject;
 import cn.bmob.push.PushConstants;
 
 public class PushReceiver extends BroadcastReceiver {
+    /**
+     * 司机的位置
+     */
     private static final int MSG_TYPE_LOCATION = 1;
+    /**
+     * 司机接单
+     */
+    private static final int MSG_TYPE_ORDER = 2;
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -36,6 +46,16 @@ public class PushReceiver extends BroadcastReceiver {
                             new Gson().fromJson(jsonObject.optString("data"), LocationInfo.class);
                     RxBus.getInstance().send(locationInfo);
 
+                } else if (type == MSG_TYPE_ORDER){
+                    //司机接单
+                    Order order = new Gson().fromJson(jsonObject.optString("data"), Order.class);
+                    //解析数据
+                    OptStateResponse response = new OptStateResponse();
+                    response.setData(order);
+                    response.setState(order.getState());
+                    response.setCode(BaseBizResponse.STATE_OK);
+                    //通知UI
+                    RxBus.getInstance().send(response);
                 }
             } catch (JSONException e) {
                 e.printStackTrace();

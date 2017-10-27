@@ -33,12 +33,12 @@
     <string name="cancel">取消</string>
     <string name="route_info">全程%1$d公里，预计%2$.2f元，%3$d分钟到达</string>
     <string name="calling_driver">正在呼叫附近司机</string>
-    <string name="accept_info">司机：%1$s(车牌:%2$s)已经接单,全程%3$d公里，%4$d分钟到达</string>
+    <string name="accept_info">司机：%1$s(车牌:%2$s)已经接单,全程%3$.2f公里，%4$d分钟到达</string>
     <string name="driver_arrive">司机：%1$s(车牌:%2$s)已经到达</string>
     <string name="order_cancel_suc">取消成功</string>
     <string name="order_cancel_error">取消失败</string>
     <string name="pay">支付</string>
-    <string name="pay_info">行程结束，感谢你使用滴滴，你需支付¥ %1$.2f 。\n 司机：%2$s 车牌:%3$s</string>
+    <string name="pay_info">行程结束，感谢你使用CloudCar，你需支付¥ %1$.2f 。\n 司机：%2$s 车牌:%3$s</string>
     <string name="cancel_fail">取消失败</string>
     <string name="pay_suc">支付成功</string>
     <string name="show_call_suc">订单发送成功，请等待司机接单</string>
@@ -52,6 +52,7 @@
     <string name="loading">加载中...</string>
     <string name="price">¥ %1$.2f</string>
     <string name="login_in_main">请先进行登录</string>
+    <string name="driving_info">司机：%1$s(车牌:%2$s)开始行驶,还有%3$.2f公里到达，预计用时%4$d分钟</string>
 
 
 </resources>
