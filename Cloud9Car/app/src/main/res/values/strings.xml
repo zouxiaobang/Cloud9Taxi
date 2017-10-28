@@ -53,6 +53,8 @@
     <string name="price">¥ %1$.2f</string>
     <string name="login_in_main">请先进行登录</string>
     <string name="driving_info">司机：%1$s(车牌:%2$s)开始行驶,还有%3$.2f公里到达，预计用时%4$d分钟</string>
+    <string name="pay_fail">支付失败，请重新支付</string>
+    <string name="paying">正在支付</string>
 
 
 </resources>

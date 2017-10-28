@@ -40,4 +40,10 @@ public interface IMainPresenter {
      * 请求取消订单
      */
     void requestCancel();
+
+    /**
+     * 请求支付
+     */
+    void requestPay();
+
 }

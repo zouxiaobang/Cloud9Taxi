@@ -157,6 +157,8 @@ public class MainActivity extends Activity implements IMainView {
                 getNearDrivers(locationInfo.getLatitude(), locationInfo.getLongitude());
                 // 上报当前位置
                 updateLocationToServer(locationInfo);
+
+                // TODO: 10/28/17 获取进行中的订单
             }
         });
 
@@ -252,9 +254,20 @@ public class MainActivity extends Activity implements IMainView {
         mBtnPay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // TODO: 10/25/17 支付功能
+                //  10/25/17 支付功能
+                pay();
             }
         });
+    }
+
+    /**
+     * 支付功能
+     */
+    private void pay() {
+        //界面响应
+        mOptState.setText(getString(R.string.paying));
+
+        mPresenter.requestPay();
     }
 
     /**
@@ -757,5 +770,25 @@ public class MainActivity extends Activity implements IMainView {
         mBtnCall.setVisibility(View.GONE);
         mBtnCancel.setVisibility(View.GONE);
         mBtnPay.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * 显示是否支付成功
+     * @param b
+     */
+    @Override
+    public void showPayResult(boolean b) {
+        if (b){
+            //支付成功
+            restoreUI();
+            mBtnPay.setVisibility(View.GONE);
+            mBtnCall.setVisibility(View.VISIBLE);
+            mBtnCancel.setVisibility(View.VISIBLE);
+
+            Toast.makeText(this, getString(R.string.pay_suc), Toast.LENGTH_SHORT).show();
+        } else {
+            //支付失败
+            Toast.makeText(this, getString(R.string.pay_fail), Toast.LENGTH_SHORT).show();
+        }
     }
 }

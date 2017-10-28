@@ -38,4 +38,10 @@ public interface IMainManager {
      * @param orderId
      */
     void cancelOrder(String orderId);
+
+    /**
+     * 完成支付功能
+     * @param orderId
+     */
+    void pay(String orderId);
 }

@@ -14,6 +14,7 @@ public class OptStateResponse extends BaseBizResponse {
     public static final int OPT_STATE_ARRIVE_START = 2;
     public static final int OPT_STATE_START_DRIVE = 3;
     public static final int OPT_STATE_ARRIVE_END = 4;
+    public static final int OPT_STATE_PAY = 5;
 
 
     private int state;

@@ -105,6 +105,14 @@ public class MainPresenterImpl implements IMainPresenter {
         }
     }
 
+    @Override
+    public void requestPay() {
+        //判断订单是否为空
+        if (mCurrentOrder != null){
+            mMainManager.pay(mCurrentOrder.getOrderId());
+        }
+    }
+
     @RegisterBus
     public void onCallDriverCompleted(OptStateResponse response){
         Log.d(TAG, "onCallDriverCompleted: state = " + response.getState());
@@ -134,6 +142,13 @@ public class MainPresenterImpl implements IMainPresenter {
         } else if (response.getState() == OptStateResponse.OPT_STATE_ARRIVE_END){
             mCurrentOrder = response.getData();
             mView.showArriveEnd(mCurrentOrder);
+        } else if (response.getState() == OptStateResponse.OPT_STATE_PAY){
+//            mCurrentOrder = response.getData();
+            if (response.getCode() == BaseBizResponse.STATE_OK){
+                mView.showPayResult(true);
+            } else {
+                mView.showPayResult(false);
+            }
         }
     }
 }

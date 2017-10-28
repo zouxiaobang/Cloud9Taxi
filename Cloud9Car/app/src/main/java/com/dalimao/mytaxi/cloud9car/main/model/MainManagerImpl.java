@@ -141,12 +141,33 @@ public class MainManagerImpl implements IMainManager {
                 IRequest request = new BaseRequest(API.Config.getDomain()
                         + API.CANCEL_ORDER);
                 request.setBody("id", orderId);
-                Log.d(TAG, "call: orderid = " + orderId);
 
                 IRespone response = mClient.post(request, false);
                 OptStateResponse optStateResponse = new OptStateResponse();
                 optStateResponse.setCode(response.getCode());
                 optStateResponse.setState(OptStateResponse.OPT_STATE_CANCEL);
+                return optStateResponse;
+            }
+        });
+    }
+
+    /**
+     * 完成支付功能
+     * @param orderId
+     */
+    @Override
+    public void pay(final String orderId) {
+        RxBus.getInstance().chainProcess(new Func1() {
+            @Override
+            public Object call(Object o) {
+                IRequest request = new BaseRequest(API.Config.getDomain() + API.PAY);
+                request.setBody("id", orderId);
+
+                IRespone respone = mClient.post(request, false);
+                OptStateResponse optStateResponse = new OptStateResponse();
+                optStateResponse.setState(OptStateResponse.OPT_STATE_PAY);
+                optStateResponse.setCode(respone.getCode());
+
                 return optStateResponse;
             }
         });

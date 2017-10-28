@@ -92,4 +92,10 @@ public interface IMainView {
      * @param currentOrder
      */
     void showArriveEnd(Order currentOrder);
+
+    /**
+     * 显示是否支付成功
+     * @param b
+     */
+    void showPayResult(boolean b);
 }
